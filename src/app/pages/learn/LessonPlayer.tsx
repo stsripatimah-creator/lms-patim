@@ -133,6 +133,7 @@ export function LessonPlayer() {
         await supabase.from('user_progress').upsert({
           user_id: user.id,
           lesson_id: lessonId,
+          track: lesson.track.toLowerCase(),
           completed: true,
           completed_at: new Date().toISOString(),
           score: 100
