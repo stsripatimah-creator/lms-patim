@@ -175,6 +175,7 @@ export function LessonPlayer() {
         }
       } catch (err) {
         console.error('Error saving progress:', err);
+        alert('Error: ' + JSON.stringify(err));
       }
     }
 
