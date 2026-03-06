@@ -6,17 +6,29 @@ import { CheckCircle2, Code2, Layers, Zap, ArrowRight, Star, Menu, Sparkles, Tar
 import { Link } from "react-router-dom"
 import { motion, AnimatePresence } from "motion/react"
 import { Logo } from "../components/Logo"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 
 export function LandingPage() {
   const [typingText, setTypingText] = useState(0);
+  const tRef = useRef(0);
+  const rafRef = useRef<number | null>(null);
+  const [, flameTick] = useState(0);
 
   useEffect(() => {
     const interval = setInterval(() => {
       setTypingText((prev) => (prev + 1) % 3);
     }, 3000);
-
     return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const loop = () => {
+      tRef.current += 0.05;
+      flameTick(n => n + 1);
+      rafRef.current = requestAnimationFrame(loop);
+    };
+    rafRef.current = requestAnimationFrame(loop);
+    return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
   }, []);
 
   return (
@@ -140,15 +152,26 @@ export function LandingPage() {
                 transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                 className="absolute -top-8 -right-8 z-20 hidden lg:block"
               >
-                <Card className="w-56 shadow-xl border-2 border-white bg-white">
+                <Card className="w-60 shadow-xl border-2 border-orange-100 bg-white overflow-hidden">
+                  <div className="h-1 w-full bg-gradient-to-r from-orange-400 to-orange-600" />
                   <CardContent className="p-5">
                     <div className="flex items-center gap-3">
-                      <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center">
-                        <Zap className="h-6 w-6 text-white fill-white" />
+                      <div className="relative">
+                        <div className="absolute inset-0 rounded-xl bg-orange-400/20 animate-ping" style={{ animationDuration: "2s" }} />
+                        <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center relative z-10 shadow-lg shadow-orange-400/40">
+                          <span style={{
+                            fontSize: 22,
+                            display: "inline-block",
+                            transformOrigin: "bottom center",
+                            transform: `scale(${1 + Math.sin(tRef.current) * 0.1}) skewX(${Math.sin(tRef.current * 1.4) * 4}deg)`,
+                            filter: `drop-shadow(0 0 6px rgba(251,146,60,${0.5 + Math.sin(tRef.current * 0.9) * 0.5}))`,
+                          }}>🔥</span>
+                        </div>
                       </div>
                       <div>
                         <p className="text-xs text-slate-500 font-medium mb-1">Daily Streak</p>
-                        <p className="text-2xl font-bold text-slate-900">🔥 Aktif!</p>
+                        <p className="text-lg font-bold text-orange-500">Tetap Aktif!</p>
+                        <p className="text-xs text-slate-400">Jangan putus hari ini ⚡</p>
                       </div>
                     </div>
                   </CardContent>
@@ -292,7 +315,7 @@ export function LandingPage() {
           <div className="flex flex-col items-center justify-center space-y-4 text-center mb-16">
             <div className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#4F46E5]/10 to-[#7C3AED]/10 px-4 py-2 text-sm font-semibold text-[#4F46E5] border border-[#4F46E5]/20">
               <Sparkles className="h-4 w-4" />
-              Sistem Gamifikasi & AI
+              Fitur Unggulan
             </div>
             <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
               Belajar Lebih Seru & Personal
@@ -303,63 +326,87 @@ export function LandingPage() {
           </div>
 
           <div className="grid gap-8 md:grid-cols-2">
-            {/* Streak */}
+            {/* Streak — animated flame */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
               viewport={{ once: true }}
             >
-              <Card className="bg-white border-2 border-slate-100 shadow-lg hover:shadow-2xl transition-all hover:-translate-y-2 duration-300 h-full overflow-hidden">
+              <Card className="bg-white border-2 border-slate-100 shadow-lg hover:shadow-2xl transition-all hover:-translate-y-2 duration-300 h-full overflow-hidden group">
                 <div className="h-1.5 w-full bg-gradient-to-r from-orange-400 to-orange-600" />
                 <CardContent className="p-8">
-                  <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center mb-6 shadow-lg">
-                    <Zap className="h-7 w-7 text-white fill-white" />
+                  <div className="relative mb-6">
+                    <div className="absolute inset-0 w-14 h-14 rounded-2xl bg-orange-400/20 animate-ping" style={{ animationDuration: "2.5s" }} />
+                    <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-400/40 relative z-10">
+                      <span style={{
+                        fontSize: 28,
+                        display: "inline-block",
+                        transformOrigin: "bottom center",
+                        transform: `scale(${1 + Math.sin(tRef.current) * 0.1}) skewX(${Math.sin(tRef.current * 1.4) * 4}deg)`,
+                        filter: `drop-shadow(0 0 8px rgba(251,146,60,${0.5 + Math.sin(tRef.current * 0.9) * 0.5}))`,
+                      }}>🔥</span>
+                    </div>
                   </div>
                   <h3 className="text-2xl font-bold text-slate-900 mb-3">Daily Streak</h3>
                   <p className="text-slate-600 leading-relaxed mb-6">
-                    Bangun kebiasaan belajar coding setiap hari. Streak-mu akan terus bertambah selama kamu konsisten belajar — dan reset kalau kamu absen sehari. Satu hari pun berarti!
+                    Bangun kebiasaan belajar coding setiap hari. Streak-mu terus bertambah selama kamu konsisten — dan kamu dapat bonus poin ekstra setiap milestone!
                   </p>
-                  <div className="flex gap-2">
-                    {[1,2,3,4,5,6,7].map((d) => (
-                      <div key={d} className="flex-1 h-8 rounded-lg bg-gradient-to-b from-orange-400 to-orange-600 opacity-80 flex items-center justify-center">
-                        <Zap className="h-3 w-3 text-white fill-white" />
+                  <div className="space-y-3">
+                    {[
+                      { label: "Streak aktif", desc: "Belajar hari ini & besok", icon: "🔥" },
+                      { label: "Bonus poin", desc: "Makin panjang makin besar", icon: "⚡" },
+                      { label: "Badge khusus", desc: "Unlock di 7, 30, 100 hari", icon: "🏅" },
+                    ].map((s, i) => (
+                      <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-orange-50 border border-orange-100">
+                        <span className="text-xl">{s.icon}</span>
+                        <div>
+                          <p className="text-sm font-bold text-slate-800">{s.label}</p>
+                          <p className="text-xs text-slate-500">{s.desc}</p>
+                        </div>
                       </div>
                     ))}
                   </div>
-                  <p className="text-xs text-slate-400 mt-2 text-center">Contoh: 7 hari streak berturut-turut</p>
                 </CardContent>
               </Card>
             </motion.div>
 
-            {/* Badge */}
+            {/* Badge & Sertifikat */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.1 }}
               viewport={{ once: true }}
             >
-              <Card className="bg-white border-2 border-slate-100 shadow-lg hover:shadow-2xl transition-all hover:-translate-y-2 duration-300 h-full overflow-hidden">
+              <Card className="bg-white border-2 border-slate-100 shadow-lg hover:shadow-2xl transition-all hover:-translate-y-2 duration-300 h-full overflow-hidden group">
                 <div className="h-1.5 w-full bg-gradient-to-r from-[#4F46E5] to-[#7C3AED]" />
                 <CardContent className="p-8">
-                  <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-[#4F46E5] to-[#7C3AED] flex items-center justify-center mb-6 shadow-lg">
+                  <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-[#4F46E5] to-[#7C3AED] flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300">
                     <Award className="h-7 w-7 text-white" />
                   </div>
-                  <h3 className="text-2xl font-bold text-slate-900 mb-3">Badge & Pencapaian</h3>
+                  <h3 className="text-2xl font-bold text-slate-900 mb-3">Badge & Sertifikat Resmi</h3>
                   <p className="text-slate-600 leading-relaxed mb-6">
-                    Setiap pencapaian dihargai. Selesaikan lesson, raih skor sempurna di quiz, atau pertahankan streak panjang — kamu akan mendapatkan badge eksklusif yang tampil di profilmu.
+                    Setiap pencapaian dihargai dengan badge eksklusif. Selesaikan semua jalur dan dapatkan <span className="font-semibold text-[#4F46E5]">sertifikat resmi</span> yang bisa langsung dibagikan ke LinkedIn atau CV-mu.
                   </p>
-                  <div className="flex gap-3 flex-wrap">
+                  <div className="flex gap-2 flex-wrap mb-5">
                     {[
-                      { label: "Pemula", color: "from-slate-400 to-slate-500" },
-                      { label: "Explorer", color: "from-[#22C55E] to-[#16A34A]" },
-                      { label: "Warrior", color: "from-[#0EA5E9] to-[#06B6D4]" },
-                      { label: "Master", color: "from-[#4F46E5] to-[#7C3AED]" },
+                      { label: "Pemula", color: "from-slate-400 to-slate-500", icon: "🌱" },
+                      { label: "Explorer", color: "from-[#22C55E] to-[#16A34A]", icon: "🎯" },
+                      { label: "Warrior", color: "from-[#0EA5E9] to-[#06B6D4]", icon: "⚡" },
+                      { label: "Master", color: "from-[#4F46E5] to-[#7C3AED]", icon: "💎" },
                     ].map((b) => (
                       <span key={b.label} className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r ${b.color} text-white text-xs font-bold shadow-md`}>
-                        <Award className="h-3 w-3" /> {b.label}
+                        {b.icon} {b.label}
                       </span>
                     ))}
+                  </div>
+                  <div className="p-4 rounded-xl bg-gradient-to-r from-[#4F46E5]/5 to-[#7C3AED]/5 border border-[#4F46E5]/15 flex items-center gap-3">
+                    <div className="text-2xl">📜</div>
+                    <div>
+                      <p className="text-sm font-bold text-slate-800">Sertifikat Resmi StepByWeb</p>
+                      <p className="text-xs text-slate-500">Verifikasi digital · Bisa dibagikan ke LinkedIn</p>
+                    </div>
+                    <CheckCircle2 className="h-5 w-5 text-[#22C55E] ml-auto shrink-0" />
                   </div>
                 </CardContent>
               </Card>
@@ -372,27 +419,34 @@ export function LandingPage() {
               transition={{ duration: 0.5, delay: 0.2 }}
               viewport={{ once: true }}
             >
-              <Card className="bg-white border-2 border-slate-100 shadow-lg hover:shadow-2xl transition-all hover:-translate-y-2 duration-300 h-full overflow-hidden">
+              <Card className="bg-white border-2 border-slate-100 shadow-lg hover:shadow-2xl transition-all hover:-translate-y-2 duration-300 h-full overflow-hidden group">
                 <div className="h-1.5 w-full bg-gradient-to-r from-[#22C55E] to-[#16A34A]" />
                 <CardContent className="p-8">
-                  <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-[#22C55E] to-[#16A34A] flex items-center justify-center mb-6 shadow-lg">
+                  <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-[#22C55E] to-[#16A34A] flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300">
                     <TrendingUp className="h-7 w-7 text-white" />
                   </div>
-                  <h3 className="text-2xl font-bold text-slate-900 mb-3">Learning Performance Index</h3>
+                  <h3 className="text-2xl font-bold text-slate-900 mb-1">Learning Performance Index</h3>
+                  <Badge className="bg-[#22C55E]/10 text-[#16A34A] border border-[#22C55E]/30 mb-4 font-semibold">LPI — Fitur Eksklusif</Badge>
                   <p className="text-slate-600 leading-relaxed mb-6">
-                    LPI adalah skor unik yang mencerminkan performa belajarmu secara keseluruhan — dihitung dari skor quiz, konsistensi streak, dan progres materi yang diselesaikan.
+                    Skor unik yang mencerminkan performa belajarmu secara keseluruhan — dihitung dari quiz, konsistensi streak, dan progres materi. <span className="font-semibold text-slate-800">Satu angka yang bicara segalanya.</span>
                   </p>
                   <div className="space-y-3">
                     {[
-                      { label: "Tinggi (80–100)", color: "bg-[#22C55E]", w: "w-[90%]" },
-                      { label: "Sedang (60–79)", color: "bg-[#0EA5E9]", w: "w-[70%]" },
-                      { label: "Rendah (40–59)", color: "bg-[#F59E0B]", w: "w-[50%]" },
-                      { label: "Kritis (0–39)", color: "bg-[#EF4444]", w: "w-[30%]" },
+                      { label: "LPI Tinggi (80–100)", color: "bg-[#22C55E]", w: "90%" },
+                      { label: "LPI Sedang (60–79)", color: "bg-[#0EA5E9]", w: "70%" },
+                      { label: "LPI Rendah (40–59)", color: "bg-[#F59E0B]", w: "50%" },
+                      { label: "LPI Kritis (0–39)",  color: "bg-[#EF4444]", w: "30%" },
                     ].map((lpi) => (
                       <div key={lpi.label} className="flex items-center gap-3">
-                        <span className="text-xs text-slate-500 w-28 shrink-0">{lpi.label}</span>
+                        <span className="text-xs text-slate-500 w-32 shrink-0">{lpi.label}</span>
                         <div className="flex-1 h-2.5 bg-slate-100 rounded-full overflow-hidden">
-                          <div className={`h-full ${lpi.color} ${lpi.w} rounded-full`} />
+                          <motion.div
+                            initial={{ width: 0 }}
+                            whileInView={{ width: lpi.w }}
+                            transition={{ duration: 1, ease: "easeOut" }}
+                            viewport={{ once: true }}
+                            className={`h-full ${lpi.color} rounded-full`}
+                          />
                         </div>
                       </div>
                     ))}
@@ -401,22 +455,23 @@ export function LandingPage() {
               </Card>
             </motion.div>
 
-            {/* Rekomendasi Konten */}
+            {/* Rekomendasi Konten Adaptif */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.3 }}
               viewport={{ once: true }}
             >
-              <Card className="bg-white border-2 border-slate-100 shadow-lg hover:shadow-2xl transition-all hover:-translate-y-2 duration-300 h-full overflow-hidden">
+              <Card className="bg-white border-2 border-slate-100 shadow-lg hover:shadow-2xl transition-all hover:-translate-y-2 duration-300 h-full overflow-hidden group">
                 <div className="h-1.5 w-full bg-gradient-to-r from-[#F59E0B] to-[#EF4444]" />
                 <CardContent className="p-8">
-                  <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-[#F59E0B] to-[#EF4444] flex items-center justify-center mb-6 shadow-lg">
+                  <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-[#F59E0B] to-[#EF4444] flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300">
                     <Sparkles className="h-7 w-7 text-white" />
                   </div>
-                  <h3 className="text-2xl font-bold text-slate-900 mb-3">Rekomendasi Konten Adaptif</h3>
+                  <h3 className="text-2xl font-bold text-slate-900 mb-1">Rekomendasi Konten Adaptif</h3>
+                  <Badge className="bg-[#F59E0B]/10 text-[#B45309] border border-[#F59E0B]/30 mb-4 font-semibold">Powered by AI</Badge>
                   <p className="text-slate-600 leading-relaxed mb-6">
-                    Berdasarkan LPI-mu, sistem kami secara otomatis merekomendasikan materi yang paling tepat — materi tantangan jika kamu perform tinggi, atau materi review jika kamu butuh penguatan.
+                    Sistem kami otomatis merekomendasikan materi yang paling tepat berdasarkan LPI-mu — materi menantang saat performa tinggi, review saat butuh penguatan.
                   </p>
                   <div className="space-y-3">
                     {[
@@ -425,7 +480,7 @@ export function LandingPage() {
                       { lpi: "LPI Rendah", rec: "Review materi + format konten berbeda", icon: "📖" },
                       { lpi: "LPI Kritis", rec: "Materi dasar & motivasi belajar", icon: "🌱" },
                     ].map((r) => (
-                      <div key={r.lpi} className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100">
+                      <div key={r.lpi} className="flex items-start gap-3 p-3 rounded-xl bg-amber-50 border border-amber-100 hover:border-amber-200 transition-colors">
                         <span className="text-lg">{r.icon}</span>
                         <div>
                           <p className="text-xs font-bold text-slate-700">{r.lpi}</p>
