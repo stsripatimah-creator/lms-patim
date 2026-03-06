@@ -1,7 +1,7 @@
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Badge } from "@/components/ui/badge"
+import { Button } from "../components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs"
+import { Badge } from "../components/ui/badge"
 import { CheckCircle2, Code2, Layers, Zap, ArrowRight, Star, Menu, Sparkles, Target, TrendingUp, Users, BookOpen, Award, Play } from "lucide-react"
 import { Link } from "react-router-dom"
 import { motion, AnimatePresence } from "motion/react"
@@ -148,7 +148,7 @@ export function LandingPage() {
                       </div>
                       <div>
                         <p className="text-xs text-slate-500 font-medium mb-1">Daily Streak</p>
-                        <p className="text-2xl font-bold text-slate-900">7 Hari</p>
+                        <p className="text-2xl font-bold text-slate-900">🔥 Aktif!</p>
                       </div>
                     </div>
                   </CardContent>
@@ -163,12 +163,10 @@ export function LandingPage() {
                 <Card className="w-64 shadow-xl border-2 border-white bg-white">
                   <CardContent className="p-5">
                     <div className="flex items-center justify-between mb-3">
-                      <span className="text-sm text-slate-600 font-medium">Progress HTML</span>
-                      <Badge className="bg-[#22C55E] text-white border-none">85%</Badge>
+                      <span className="text-sm text-slate-600 font-medium">Rekomendasi untukmu</span>
+                      <Badge className="bg-[#4F46E5] text-white border-none">LPI</Badge>
                     </div>
-                    <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-gradient-to-r from-[#22C55E] to-[#16A34A] w-[85%] rounded-full shadow-sm" />
-                    </div>
+                    <p className="text-xs text-slate-500 leading-relaxed">Materi lanjutan dipilihkan sesuai performa belajarmu</p>
                   </CardContent>
                 </Card>
               </motion.div>
@@ -289,42 +287,156 @@ export function LandingPage() {
           </div>
         </section>
 
-        {/* Stats Section - NEW */}
-        <section className="container px-4 md:px-6 py-16 md:py-20">
-          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-            {[
-              { icon: Users, label: "Pembelajar Aktif", value: "10,000+", gradient: "from-[#4F46E5] to-[#7C3AED]" },
-              { icon: BookOpen, label: "Total Lessons", value: "27", gradient: "from-[#0EA5E9] to-[#06B6D4]" },
-              { icon: Award, label: "Certificates", value: "5,000+", gradient: "from-[#22C55E] to-[#16A34A]" },
-              { icon: Zap, label: "Daily Challenges", value: "365", gradient: "from-[#F59E0B] to-[#EF4444]" }
-            ].map((stat, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, scale: 0.9 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5, delay: i * 0.1 }}
-                viewport={{ once: true }}
-              >
-                <Card className="bg-white border-2 border-slate-100 shadow-lg hover:shadow-xl transition-all duration-300 group overflow-hidden">
-                  <CardContent className="p-6">
-                    <div className={`h-12 w-12 rounded-xl bg-gradient-to-br ${stat.gradient} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}>
-                      <stat.icon className="h-6 w-6 text-white" />
-                    </div>
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      whileInView={{ opacity: 1 }}
-                      transition={{ duration: 1, delay: i * 0.1 + 0.3 }}
-                      viewport={{ once: true }}
-                      className="text-3xl font-bold text-slate-900 mb-1"
-                    >
-                      {stat.value}
-                    </motion.div>
-                    <div className="text-sm text-slate-600 font-medium">{stat.label}</div>
-                  </CardContent>
-                  <div className={`h-1 w-full bg-gradient-to-r ${stat.gradient}`} />
-                </Card>
-              </motion.div>
-            ))}
+        {/* Gamification Highlight Section */}
+        <section className="container px-4 md:px-6 py-16 md:py-24">
+          <div className="flex flex-col items-center justify-center space-y-4 text-center mb-16">
+            <div className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#4F46E5]/10 to-[#7C3AED]/10 px-4 py-2 text-sm font-semibold text-[#4F46E5] border border-[#4F46E5]/20">
+              <Sparkles className="h-4 w-4" />
+              Sistem Gamifikasi & AI
+            </div>
+            <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
+              Belajar Lebih Seru & Personal
+            </h2>
+            <p className="max-w-[700px] text-slate-600 text-lg">
+              StepByWeb bukan sekadar platform belajar biasa. Dengan sistem gamifikasi dan rekomendasi cerdas berbasis AI, setiap sesi belajar terasa menyenangkan dan relevan untukmu.
+            </p>
+          </div>
+
+          <div className="grid gap-8 md:grid-cols-2">
+            {/* Streak */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              viewport={{ once: true }}
+            >
+              <Card className="bg-white border-2 border-slate-100 shadow-lg hover:shadow-2xl transition-all hover:-translate-y-2 duration-300 h-full overflow-hidden">
+                <div className="h-1.5 w-full bg-gradient-to-r from-orange-400 to-orange-600" />
+                <CardContent className="p-8">
+                  <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center mb-6 shadow-lg">
+                    <Zap className="h-7 w-7 text-white fill-white" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-slate-900 mb-3">Daily Streak</h3>
+                  <p className="text-slate-600 leading-relaxed mb-6">
+                    Bangun kebiasaan belajar coding setiap hari. Streak-mu akan terus bertambah selama kamu konsisten belajar — dan reset kalau kamu absen sehari. Satu hari pun berarti!
+                  </p>
+                  <div className="flex gap-2">
+                    {[1,2,3,4,5,6,7].map((d) => (
+                      <div key={d} className="flex-1 h-8 rounded-lg bg-gradient-to-b from-orange-400 to-orange-600 opacity-80 flex items-center justify-center">
+                        <Zap className="h-3 w-3 text-white fill-white" />
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-xs text-slate-400 mt-2 text-center">Contoh: 7 hari streak berturut-turut</p>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* Badge */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              viewport={{ once: true }}
+            >
+              <Card className="bg-white border-2 border-slate-100 shadow-lg hover:shadow-2xl transition-all hover:-translate-y-2 duration-300 h-full overflow-hidden">
+                <div className="h-1.5 w-full bg-gradient-to-r from-[#4F46E5] to-[#7C3AED]" />
+                <CardContent className="p-8">
+                  <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-[#4F46E5] to-[#7C3AED] flex items-center justify-center mb-6 shadow-lg">
+                    <Award className="h-7 w-7 text-white" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-slate-900 mb-3">Badge & Pencapaian</h3>
+                  <p className="text-slate-600 leading-relaxed mb-6">
+                    Setiap pencapaian dihargai. Selesaikan lesson, raih skor sempurna di quiz, atau pertahankan streak panjang — kamu akan mendapatkan badge eksklusif yang tampil di profilmu.
+                  </p>
+                  <div className="flex gap-3 flex-wrap">
+                    {[
+                      { label: "Pemula", color: "from-slate-400 to-slate-500" },
+                      { label: "Explorer", color: "from-[#22C55E] to-[#16A34A]" },
+                      { label: "Warrior", color: "from-[#0EA5E9] to-[#06B6D4]" },
+                      { label: "Master", color: "from-[#4F46E5] to-[#7C3AED]" },
+                    ].map((b) => (
+                      <span key={b.label} className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r ${b.color} text-white text-xs font-bold shadow-md`}>
+                        <Award className="h-3 w-3" /> {b.label}
+                      </span>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* LPI */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              viewport={{ once: true }}
+            >
+              <Card className="bg-white border-2 border-slate-100 shadow-lg hover:shadow-2xl transition-all hover:-translate-y-2 duration-300 h-full overflow-hidden">
+                <div className="h-1.5 w-full bg-gradient-to-r from-[#22C55E] to-[#16A34A]" />
+                <CardContent className="p-8">
+                  <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-[#22C55E] to-[#16A34A] flex items-center justify-center mb-6 shadow-lg">
+                    <TrendingUp className="h-7 w-7 text-white" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-slate-900 mb-3">Learning Performance Index</h3>
+                  <p className="text-slate-600 leading-relaxed mb-6">
+                    LPI adalah skor unik yang mencerminkan performa belajarmu secara keseluruhan — dihitung dari skor quiz, konsistensi streak, dan progres materi yang diselesaikan.
+                  </p>
+                  <div className="space-y-3">
+                    {[
+                      { label: "Tinggi (80–100)", color: "bg-[#22C55E]", w: "w-[90%]" },
+                      { label: "Sedang (60–79)", color: "bg-[#0EA5E9]", w: "w-[70%]" },
+                      { label: "Rendah (40–59)", color: "bg-[#F59E0B]", w: "w-[50%]" },
+                      { label: "Kritis (0–39)", color: "bg-[#EF4444]", w: "w-[30%]" },
+                    ].map((lpi) => (
+                      <div key={lpi.label} className="flex items-center gap-3">
+                        <span className="text-xs text-slate-500 w-28 shrink-0">{lpi.label}</span>
+                        <div className="flex-1 h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                          <div className={`h-full ${lpi.color} ${lpi.w} rounded-full`} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* Rekomendasi Konten */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              viewport={{ once: true }}
+            >
+              <Card className="bg-white border-2 border-slate-100 shadow-lg hover:shadow-2xl transition-all hover:-translate-y-2 duration-300 h-full overflow-hidden">
+                <div className="h-1.5 w-full bg-gradient-to-r from-[#F59E0B] to-[#EF4444]" />
+                <CardContent className="p-8">
+                  <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-[#F59E0B] to-[#EF4444] flex items-center justify-center mb-6 shadow-lg">
+                    <Sparkles className="h-7 w-7 text-white" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-slate-900 mb-3">Rekomendasi Konten Adaptif</h3>
+                  <p className="text-slate-600 leading-relaxed mb-6">
+                    Berdasarkan LPI-mu, sistem kami secara otomatis merekomendasikan materi yang paling tepat — materi tantangan jika kamu perform tinggi, atau materi review jika kamu butuh penguatan.
+                  </p>
+                  <div className="space-y-3">
+                    {[
+                      { lpi: "LPI Tinggi", rec: "Materi lanjutan yang lebih menantang", icon: "🚀" },
+                      { lpi: "LPI Sedang", rec: "Materi ringan untuk rebuild semangat", icon: "💪" },
+                      { lpi: "LPI Rendah", rec: "Review materi + format konten berbeda", icon: "📖" },
+                      { lpi: "LPI Kritis", rec: "Materi dasar & motivasi belajar", icon: "🌱" },
+                    ].map((r) => (
+                      <div key={r.lpi} className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100">
+                        <span className="text-lg">{r.icon}</span>
+                        <div>
+                          <p className="text-xs font-bold text-slate-700">{r.lpi}</p>
+                          <p className="text-xs text-slate-500">{r.rec}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
           </div>
         </section>
 
