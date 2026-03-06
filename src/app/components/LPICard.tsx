@@ -1,9 +1,6 @@
 // src/app/components/LPICard.tsx
-// Komponen card yang menampilkan nilai LPI user di halaman Progress / Dashboard
-
+import { useTranslation } from "react-i18next";
 import { useLPI, LPIKategori } from "../../hooks/useLPI";
-
-// ─── Helper ───────────────────────────────────────────────────────────────────
 
 function getWarna(kategori: LPIKategori) {
   switch (kategori) {
@@ -14,24 +11,32 @@ function getWarna(kategori: LPIKategori) {
   }
 }
 
-function getDeskripsi(kategori: LPIKategori): string {
-  switch (kategori) {
-    case "Tinggi":  return "Luar biasa! Kamu siap untuk materi yang lebih menantang.";
-    case "Sedang":  return "Progres bagus! Jaga konsistensi streakmu untuk naik level.";
-    case "Rendah":  return "Ada beberapa materi yang perlu di-review. Yuk semangat!";
-    case "Kritis":  return "Mulai dari awal tidak apa-apa. Konsistensi adalah kuncinya.";
-  }
-}
-
-// ─── Komponen ─────────────────────────────────────────────────────────────────
-
 interface LPICardProps {
   userId: string;
 }
 
 export default function LPICard({ userId }: LPICardProps) {
+  const { t } = useTranslation();
   const { nilai, kategori, komponen, loading, error } = useLPI(userId);
   const warna = getWarna(kategori);
+
+  const getDeskripsi = (k: LPIKategori): string => {
+    switch (k) {
+      case "Tinggi":  return t('lpi.descHigh');
+      case "Sedang":  return t('lpi.descMedium');
+      case "Rendah":  return t('lpi.descLow');
+      case "Kritis":  return t('lpi.descCritical');
+    }
+  };
+
+  const getKategoriLabel = (k: LPIKategori): string => {
+    switch (k) {
+      case "Tinggi":  return t('lpi.high');
+      case "Sedang":  return t('lpi.medium');
+      case "Rendah":  return t('lpi.low');
+      case "Kritis":  return t('lpi.critical');
+    }
+  };
 
   if (loading) {
     return (
@@ -54,61 +59,41 @@ export default function LPICard({ userId }: LPICardProps) {
   const persenBar = Math.min(nilai, 100);
 
   return (
-    <div
-      className="rounded-xl border p-6"
-      style={{ borderColor: warna.bar, backgroundColor: warna.bg }}
-    >
-      {/* Header */}
+    <div className="rounded-xl border p-6" style={{ borderColor: warna.bar, backgroundColor: warna.bg }}>
       <div className="flex items-center justify-between mb-4">
         <div>
-          <p className="text-sm font-medium text-slate-400">
-            Learning Performance Index
-          </p>
+          <p className="text-sm font-medium text-slate-400">{t('lpi.title')}</p>
           <div className="flex items-baseline gap-2 mt-1">
-            <span
-              className="text-4xl font-bold"
-              style={{ color: warna.text }}
-            >
-              {nilai}
-            </span>
-            <span className="text-sm text-slate-500">/ 100</span>
+            <span className="text-4xl font-bold" style={{ color: warna.text }}>{nilai}</span>
+            <span className="text-sm text-slate-500">{t('lpi.outOf')}</span>
           </div>
         </div>
-        <span
-          className="text-sm font-semibold px-3 py-1 rounded-full"
-          style={{ color: warna.text, backgroundColor: warna.bar + "22" }}
-        >
-          {kategori}
+        <span className="text-sm font-semibold px-3 py-1 rounded-full" style={{ color: warna.text, backgroundColor: warna.bar + "22" }}>
+          {getKategoriLabel(kategori)}
         </span>
       </div>
 
-      {/* Progress Bar */}
       <div className="w-full bg-slate-700 rounded-full h-2 mb-4">
-        <div
-          className="h-2 rounded-full transition-all duration-700"
-          style={{ width: `${persenBar}%`, backgroundColor: warna.bar }}
-        />
+        <div className="h-2 rounded-full transition-all duration-700" style={{ width: `${persenBar}%`, backgroundColor: warna.bar }} />
       </div>
 
-      {/* Deskripsi */}
       <p className="text-sm text-slate-400 mb-5">{getDeskripsi(kategori)}</p>
 
-      {/* Breakdown Komponen */}
       <div className="grid grid-cols-3 gap-3">
         <div className="rounded-lg bg-slate-800 p-3 text-center">
-          <p className="text-xs text-slate-500 mb-1">Skor</p>
+          <p className="text-xs text-slate-500 mb-1">{t('lpi.score')}</p>
           <p className="text-lg font-bold text-white">{komponen.S}</p>
-          <p className="text-xs text-slate-500">bobot 50%</p>
+          <p className="text-xs text-slate-500">{t('lpi.weight50')}</p>
         </div>
         <div className="rounded-lg bg-slate-800 p-3 text-center">
-          <p className="text-xs text-slate-500 mb-1">Konsistensi</p>
+          <p className="text-xs text-slate-500 mb-1">{t('lpi.consistency')}</p>
           <p className="text-lg font-bold text-white">{komponen.K}</p>
-          <p className="text-xs text-slate-500">bobot 30%</p>
+          <p className="text-xs text-slate-500">{t('lpi.weight30')}</p>
         </div>
         <div className="rounded-lg bg-slate-800 p-3 text-center">
-          <p className="text-xs text-slate-500 mb-1">Aktivitas</p>
+          <p className="text-xs text-slate-500 mb-1">{t('lpi.activity')}</p>
           <p className="text-lg font-bold text-white">{komponen.A}</p>
-          <p className="text-xs text-slate-500">bobot 20%</p>
+          <p className="text-xs text-slate-500">{t('lpi.weight20')}</p>
         </div>
       </div>
     </div>

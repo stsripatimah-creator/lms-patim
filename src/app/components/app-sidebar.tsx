@@ -13,6 +13,7 @@ import {
 
 import { Link, useLocation, useNavigate } from "react-router-dom"
 import { Logo } from "./Logo"
+import { useAuth } from "@/context/AuthContext"
 
 import {
   Sidebar,
@@ -65,11 +66,26 @@ const items = [
     url: "/achievements",
     icon: Trophy,
   },
+  {
+    title: "Profil",
+    url: "/profile",
+    icon: User2,
+  },
 ]
 
 export function AppSidebar() {
   const location = useLocation()
   const navigate = useNavigate()
+  const { user, profile, signOut } = useAuth()
+
+  const displayName = profile?.full_name || user?.email?.split("@")[0] || "User"
+  const displayEmail = user?.email || "user@example.com"
+  const avatarFallback = displayName.slice(0, 2).toUpperCase()
+
+  const handleLogout = async () => {
+    await signOut()
+    navigate("/login")
+  }
 
   return (
     <Sidebar collapsible="icon">
@@ -138,14 +154,12 @@ export function AppSidebar() {
                   className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                 >
                   <Avatar className="h-8 w-8 rounded-lg">
-                    <AvatarImage src="https://github.com/shadcn.png" alt="@user" />
-                    <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                    <AvatarFallback className="rounded-lg">{avatarFallback}</AvatarFallback>
                   </Avatar>
                   <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-semibold">User</span>
-                    <span className="truncate text-xs">user@example.com</span>
+                    <span className="truncate font-semibold">{displayName}</span>
+                    <span className="truncate text-xs">{displayEmail}</span>
                   </div>
-                  {/* ChevronsUpDown is handled by SidebarMenuButton logic usually or I can add it if needed but SidebarMenuButton supports it? No, standard example adds ChevronsUQ */}
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
               <DropdownMenuContent
@@ -157,28 +171,23 @@ export function AppSidebar() {
                 <DropdownMenuLabel className="p-0 font-normal">
                   <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                     <Avatar className="h-8 w-8 rounded-lg">
-                      <AvatarImage src="https://github.com/shadcn.png" alt="@user" />
-                      <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                      <AvatarFallback className="rounded-lg">{avatarFallback}</AvatarFallback>
                     </Avatar>
                     <div className="grid flex-1 text-left text-sm leading-tight">
-                      <span className="truncate font-semibold">User</span>
-                      <span className="truncate text-xs">user@example.com</span>
+                      <span className="truncate font-semibold">{displayName}</span>
+                      <span className="truncate text-xs">{displayEmail}</span>
                     </div>
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate("/profile")}>
                   <User2 className="mr-2 size-4" />
-                  Profile
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <ChevronUp className="mr-2 size-4" />
-                  Notifications
+                  Profil
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={handleLogout}>
                   <LogOut className="mr-2 size-4" />
-                  Log out
+                  Keluar
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

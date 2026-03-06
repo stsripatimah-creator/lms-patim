@@ -21,7 +21,7 @@ interface TrackProgress {
 export function Dashboard() {
   const { profile, user } = useAuth();
   const { t } = useTranslation();
-  const [challengeStatus, setChallengeStatus] = useState<'pending' | 'completed'>('pending');
+  const [challengeStatus] = useState<'pending' | 'completed'>('pending');
   const [timeRemaining] = useState({ hours: 6, minutes: 12, seconds: 45 });
   const [trackProgress, setTrackProgress] = useState<Record<string, TrackProgress>>({});
 
@@ -58,22 +58,6 @@ export function Dashboard() {
       setTrackProgress(result);
     }
     fetchProgress();
-  }, [user?.id]);
-
-  // Cek apakah challenge hari ini sudah dikerjakan
-  useEffect(() => {
-    if (!user?.id) return;
-    async function checkChallenge() {
-      const today = new Date().toISOString().split('T')[0];
-      const { data } = await supabase
-        .from('user_daily_challenges')
-        .select('id')
-        .eq('user_id', user!.id)
-        .gte('completed_at', today + 'T00:00:00')
-        .limit(1);
-      if (data && data.length > 0) setChallengeStatus('completed');
-    }
-    checkChallenge();
   }, [user?.id]);
 
   return (

@@ -68,11 +68,6 @@ export function LessonPlayer() {
   const [mobileTab, setMobileTab] = useState<"content" | "editor" | "output">("content");
   const [isCompleted, setIsCompleted] = useState(false);
 
-  // Cek apakah semua quiz sudah disubmit
-  const totalQuiz = lesson.quiz?.length || 0;
-  const allQuizSubmitted = totalQuiz === 0 || 
-    lesson.quiz.every((q: any) => submittedQuiz[q.id] === true);
-
   // Reset state saat lesson berganti
   useEffect(() => {
     setIsCompleted(false);
@@ -828,11 +823,9 @@ export function LessonPlayer() {
             size="sm" 
             variant={isCompleted ? "default" : "outline"}
             onClick={handleMarkComplete}
-            disabled={isCompleted || !allQuizSubmitted}
-            title={!allQuizSubmitted ? "Selesaikan semua kuis terlebih dahulu" : ""}
+            disabled={isCompleted}
             className={cn(
-              isCompleted && "bg-[#22C55E] hover:bg-[#16A34A] text-white",
-              !isCompleted && !allQuizSubmitted && "opacity-50 cursor-not-allowed"
+              isCompleted && "bg-[#22C55E] hover:bg-[#16A34A] text-white"
             )}
           >
             {isCompleted ? (
@@ -840,8 +833,6 @@ export function LessonPlayer() {
                 <CheckCircle className="h-4 w-4 mr-2" />
                 Selesai ✓
               </>
-            ) : !allQuizSubmitted ? (
-              `Selesaikan Kuis (${Object.keys(submittedQuiz).length}/${totalQuiz})`
             ) : (
               "Tandai Selesai"
             )}

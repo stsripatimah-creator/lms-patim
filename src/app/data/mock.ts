@@ -71,7 +71,7 @@ export const CERTIFICATES = [
   {
     id: "cert-html",
     title: "HTML Fundamentals",
-    subtitle: "Sertifikat Penyelesaian Kursus",
+    subtitle: "Sertifikat Penyelesaian Belajar",
     description: "Telah menyelesaikan seluruh materi HTML Fundamentals dengan hasil memuaskan.",
     issuedDate: "15 Januari 2025",
     track: "HTML",
@@ -85,7 +85,7 @@ export const CERTIFICATES = [
   {
     id: "cert-css",
     title: "CSS Styling",
-    subtitle: "Sertifikat Penyelesaian Kursus",
+    subtitle: "Sertifikat Penyelesaian Belajar",
     description: "Telah menyelesaikan seluruh materi CSS Styling dengan hasil memuaskan.",
     issuedDate: null,
     track: "CSS",
@@ -99,7 +99,7 @@ export const CERTIFICATES = [
   {
     id: "cert-js",
     title: "JavaScript Logic",
-    subtitle: "Sertifikat Penyelesaian Kursus",
+    subtitle: "Sertifikat Penyelesaian Belajar",
     description: "Telah menyelesaikan seluruh materi JavaScript Logic dengan hasil memuaskan.",
     issuedDate: null,
     track: "JavaScript",

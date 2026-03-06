@@ -11,6 +11,7 @@ type AuthContextType = {
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: any }>
   signOut: () => Promise<void>
   refreshProfile: () => Promise<void>
+  updateProfile: (data: { full_name?: string }) => Promise<{ error: any }>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -70,8 +71,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (user) await fetchProfile(user.id)
   }
 
+  async function updateProfile(data: { full_name?: string }) {
+    if (!user) return { error: new Error('Tidak ada user') }
+    const { error } = await supabase
+      .from('profiles')
+      .update(data)
+      .eq('id', user.id)
+    if (!error) await fetchProfile(user.id)
+    return { error }
+  }
+
   return (
-    <AuthContext.Provider value={{ user, profile, session, loading, signIn, signUp, signOut, refreshProfile }}>
+    <AuthContext.Provider value={{ user, profile, session, loading, signIn, signUp, signOut, refreshProfile, updateProfile }}>
       {children}
     </AuthContext.Provider>
   )

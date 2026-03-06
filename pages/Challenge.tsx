@@ -11,6 +11,85 @@ import { useTranslation } from "react-i18next";
 
 const XP_REWARD = 50;
 
+const QUESTION_POOL = [
+  {
+    title: "CSS Flexbox Challenge",
+    desc: "Properti mana yang digunakan untuk mengatur alignment vertikal dalam flex container?",
+    options: ["justify-content", "align-items", "flex-direction", "align-content"],
+    correct: 1,
+    category: "CSS Intermediate"
+  },
+  {
+    title: "HTML Semantik",
+    desc: "Tag HTML mana yang paling tepat untuk menampilkan navigasi utama sebuah website?",
+    options: ["<div>", "<section>", "<nav>", "<header>"],
+    correct: 2,
+    category: "HTML Basic"
+  },
+  {
+    title: "JavaScript Variable",
+    desc: "Keyword mana yang digunakan untuk mendeklarasikan variabel yang nilainya tidak bisa diubah?",
+    options: ["var", "let", "const", "static"],
+    correct: 2,
+    category: "JS Basic"
+  },
+  {
+    title: "CSS Box Model",
+    desc: "Urutan yang benar dari luar ke dalam pada CSS Box Model adalah?",
+    options: ["margin → border → padding → content", "padding → border → margin → content", "border → margin → padding → content", "content → padding → margin → border"],
+    correct: 0,
+    category: "CSS Basic"
+  },
+  {
+    title: "HTML Form",
+    desc: "Atribut apa yang digunakan untuk membuat input wajib diisi sebelum form disubmit?",
+    options: ["mandatory", "required", "validate", "important"],
+    correct: 1,
+    category: "HTML Intermediate"
+  },
+  {
+    title: "CSS Selector",
+    desc: "Selector CSS mana yang memiliki specificity paling tinggi?",
+    options: ["element selector", "class selector", "ID selector", "universal selector"],
+    correct: 2,
+    category: "CSS Intermediate"
+  },
+  {
+    title: "JavaScript Array",
+    desc: "Method mana yang digunakan untuk menambahkan elemen di akhir array?",
+    options: ["push()", "pop()", "shift()", "unshift()"],
+    correct: 0,
+    category: "JS Basic"
+  },
+  {
+    title: "HTML Link",
+    desc: "Atribut apa yang digunakan untuk membuka link di tab baru?",
+    options: ["target='_self'", "target='_blank'", "target='_new'", "target='_tab'"],
+    correct: 1,
+    category: "HTML Basic"
+  },
+  {
+    title: "CSS Flexbox Direction",
+    desc: "Nilai default dari properti flex-direction adalah?",
+    options: ["column", "row-reverse", "row", "column-reverse"],
+    correct: 2,
+    category: "CSS Intermediate"
+  },
+  {
+    title: "JavaScript DOM",
+    desc: "Method mana yang digunakan untuk memilih elemen HTML berdasarkan ID-nya?",
+    options: ["document.querySelector()", "document.getElement()", "document.getElementById()", "document.findById()"],
+    correct: 2,
+    category: "JS Intermediate"
+  },
+];
+
+// Pilih soal berdasarkan hari (ganti tiap hari, konsisten dalam 1 hari)
+function getDailyQuestion() {
+  const dayIndex = Math.floor(Date.now() / (1000 * 60 * 60 * 24));
+  return QUESTION_POOL[dayIndex % QUESTION_POOL.length];
+}
+
 export function Challenge() {
   const { user, profile } = useAuth();
   const { t } = useTranslation();
@@ -22,12 +101,7 @@ export function Challenge() {
   const points = profile?.points ?? 0;
   const xpBonus = streak >= 7 ? 35 : streak >= 3 ? 15 : 0;
 
-  const QUESTION = {
-    title: "CSS Flexbox Challenge",
-    desc: "Properti mana yang digunakan untuk mengatur alignment vertikal dalam flex container?",
-    options: ["justify-content", "align-items", "flex-direction", "align-content"],
-    correct: 1
-  };
+  const QUESTION = getDailyQuestion();
 
   const updateSupabase = async () => {
     if (!user) return;
@@ -62,44 +136,23 @@ export function Challenge() {
           streak: newStreak,
           last_active: new Date().toISOString()
         }).eq('id', user.id);
-
-        // Sync ke user_streaks agar useLPI membaca data yang benar
-        const longestStreak = Math.max(newStreak, profileData.streak || 0);
-        await supabase.from('user_streaks').upsert({
-          user_id: user.id,
-          current_streak: newStreak,
-          longest_streak: longestStreak,
-          last_activity_date: new Date().toISOString()
-        }, { onConflict: 'user_id' });
-
-        // Catat challenge harian selesai agar Dashboard bisa cek statusnya
-        await supabase.from('user_daily_challenges').upsert({
-          user_id: user.id,
-          completed_at: new Date().toISOString(),
-          xp_gained: xpGained
-        }, { onConflict: 'user_id' });
       }
     } catch (err) {
       console.error('Error updating Supabase:', err);
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (selectedOption === null) return;
     if (selectedOption === QUESTION.correct) {
       setAnswered(true);
+      await updateSupabase();
       const xpGained = Math.round(XP_REWARD * (1 + xpBonus / 100));
-      setXpToday(xpGained);
-      toast.success(t('challenge.correct', { xp: XP_REWARD }));
+      toast.success(`Jawaban Benar! +${xpGained} XP telah diklaim!`);
     } else {
       setAnswered(false);
       toast.error(t('challenge.wrong'));
     }
-  };
-
-  const handleKlaimReward = async () => {
-    await updateSupabase();
-    toast.success(`+${xpToday || XP_REWARD} XP berhasil diklaim! 🎉`);
   };
 
   return (
@@ -119,7 +172,7 @@ export function Challenge() {
           <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-orange-500 to-red-500" />
           <CardHeader>
             <div className="flex justify-between items-start">
-              <Badge className="bg-slate-700 text-slate-300">CSS Intermediate</Badge>
+              <Badge className="bg-slate-700 text-slate-300">{QUESTION.category}</Badge>
               <div className="text-orange-500 font-bold">+{XP_REWARD} XP</div>
             </div>
             <CardTitle className="mt-4 text-xl">{QUESTION.title}</CardTitle>
@@ -145,8 +198,8 @@ export function Challenge() {
           </CardContent>
           <CardFooter className="pt-2 pb-6">
             {answered === true ? (
-              <Button className="bg-green-600 hover:bg-green-700 w-full" onClick={handleKlaimReward}>
-                {t('challenge.claimReward', { xp: xpToday || XP_REWARD })}
+              <Button className="bg-green-600 hover:bg-green-700 w-full cursor-default" disabled>
+                <CheckCircle className="h-4 w-4 mr-2" /> Reward Telah Diklaim!
               </Button>
             ) : (
               <Button className="bg-orange-500 hover:bg-orange-600 w-full" onClick={handleSubmit} disabled={selectedOption === null}>
