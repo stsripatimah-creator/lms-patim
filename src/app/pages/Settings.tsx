@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { User, Bell, Shield, Moon, Sun, LogOut, Camera } from "lucide-react";
+import { User, Bell, Shield, LogOut, Camera } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
@@ -21,41 +21,14 @@ export function Settings() {
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(profile?.avatar_url || null);
-  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
   const [dailyReminder, setDailyReminder] = useState(true);
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [language, setLanguage] = useState(localStorage.getItem('language') || 'id');
 
-  // Sync fullName & avatar saat profile berubah
   useEffect(() => {
     if (profile?.full_name) setFullName(profile.full_name);
     if (profile?.avatar_url) setAvatarUrl(profile.avatar_url);
   }, [profile?.full_name, profile?.avatar_url]);
-
-  // Load tema dari localStorage saat pertama kali
-  useEffect(() => {
-    const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null;
-    if (savedTheme) {
-      setTheme(savedTheme);
-      applyTheme(savedTheme);
-    }
-  }, []);
-
-  const applyTheme = (newTheme: 'light' | 'dark') => {
-    const root = document.documentElement;
-    if (newTheme === 'light') {
-      root.classList.remove('dark');
-    } else {
-      root.classList.add('dark');
-    }
-  };
-
-  const handleThemeChange = (newTheme: 'light' | 'dark') => {
-    setTheme(newTheme);
-    localStorage.setItem('theme', newTheme);
-    applyTheme(newTheme);
-    toast.success(`Tema ${newTheme === 'dark' ? 'gelap' : 'terang'} diaktifkan`);
-  };
 
   const handleLanguageChange = (lang: string) => {
     setLanguage(lang);
@@ -63,12 +36,10 @@ export function Settings() {
     i18n.changeLanguage(lang);
   };
 
-  // ✅ Fix: Upload foto ke Supabase Storage
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
 
-    // Validasi ukuran & tipe file
     if (file.size > 2 * 1024 * 1024) {
       toast.error('Ukuran file maksimal 2MB');
       return;
@@ -83,19 +54,16 @@ export function Settings() {
       const fileExt = file.name.split('.').pop();
       const filePath = `${user.id}/avatar.${fileExt}`;
 
-      // Upload ke Supabase Storage bucket "avatars"
       const { error: uploadError } = await supabase.storage
         .from('avatars')
         .upload(filePath, file, { upsert: true });
 
       if (uploadError) throw uploadError;
 
-      // Ambil public URL
       const { data: { publicUrl } } = supabase.storage
         .from('avatars')
         .getPublicUrl(filePath);
 
-      // Simpan URL ke tabel profiles
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ avatar_url: publicUrl })
@@ -148,7 +116,6 @@ export function Settings() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center gap-4">
-            {/* ✅ Fix: Avatar dengan preview & upload */}
             <div className="relative group">
               <div className="h-20 w-20 rounded-full border-2 border-slate-700 bg-slate-800 flex items-center justify-center text-2xl font-bold text-slate-400 overflow-hidden">
                 {avatarUrl ? (
@@ -157,7 +124,6 @@ export function Settings() {
                   profile?.full_name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || '?'
                 )}
               </div>
-              {/* Overlay kamera saat hover */}
               <button
                 onClick={() => fileInputRef.current?.click()}
                 className="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
@@ -166,7 +132,6 @@ export function Settings() {
               </button>
             </div>
 
-            {/* Hidden file input */}
             <input
               ref={fileInputRef}
               type="file"
@@ -226,30 +191,6 @@ export function Settings() {
           <CardDescription>{t('settings.preferences.desc')}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Theme */}
-          <div className="flex items-center justify-between">
-            <div>
-              <Label>{t('settings.preferences.theme')}</Label>
-              <p className="text-sm text-slate-400">{t('settings.preferences.themeDesc')}</p>
-            </div>
-            <div className="flex items-center gap-2 bg-slate-800 p-1 rounded-lg">
-              <button
-                onClick={() => handleThemeChange('light')}
-                className={`p-2 rounded transition-all ${theme === 'light' ? 'bg-[#4F46E5] text-white' : 'text-slate-400 hover:text-white'}`}
-              >
-                <Sun className="h-4 w-4" />
-              </button>
-              <button
-                onClick={() => handleThemeChange('dark')}
-                className={`p-2 rounded transition-all ${theme === 'dark' ? 'bg-[#4F46E5] text-white' : 'text-slate-400 hover:text-white'}`}
-              >
-                <Moon className="h-4 w-4" />
-              </button>
-            </div>
-          </div>
-
-          <Separator className="bg-slate-700" />
-
           <div className="flex items-center justify-between">
             <div>
               <Label>{t('settings.preferences.reminder')}</Label>
