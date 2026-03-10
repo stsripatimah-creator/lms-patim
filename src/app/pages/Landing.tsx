@@ -57,7 +57,7 @@ export function LandingPage() {
                   Mulai Belajar Gratis <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
-              <Link to="/curriculum">
+              <Link to="/courses">
                  <Button size="lg" variant="outline" className="h-14 px-8 text-lg border-slate-700 hover:bg-slate-800">
                     Lihat Kurikulum
                  </Button>
