@@ -32,15 +32,26 @@ export function CourseCatalog() {
   async function fetchProgress() {
     setLoadingProgress(true);
     try {
+      // ✅ Fix: pakai tabel "user_progress" (sama dengan Dashboard)
       const { data, error } = await supabase
         .from("user_progress")
-        .select("track, lesson_id, completed")
-        .eq("user_id", user!.id);
+        .select("track, lesson_id")
+        .eq("user_id", user!.id)
+        .eq("completed", true);
       if (error) throw error;
+
+      const byTrack: Record<string, Set<string>> = {};
+      (data ?? []).forEach((row: any) => {
+        let tr = row.track?.toLowerCase();
+        if (!tr) return;
+        if (tr === "javascript") tr = "js";
+        if (!byTrack[tr]) byTrack[tr] = new Set();
+        byTrack[tr].add(row.lesson_id);
+      });
+
       const map: ProgressMap = {};
       TRACKS.forEach((track) => {
-        const trackRows = data?.filter((r) => r.track === track.id) ?? [];
-        const completedCount = trackRows.filter((r) => r.completed === true).length;
+        const completedCount = byTrack[track.id]?.size ?? 0;
         const total = track.totalLessons;
         const percent = total > 0 ? Math.round((completedCount / total) * 100) : 0;
         map[track.id] = { completed: completedCount, total, percent };
@@ -171,21 +182,20 @@ export function CourseCatalog() {
                       <p className="text-xs text-slate-500 mb-1">{t('courses.completed')}</p>
                       <p className="text-lg font-bold text-white">{loadingProgress ? "-" : prog.completed}</p>
                     </div>
-                    <div>
-                      <p className="text-xs text-slate-500 mb-1">{t('courses.estimatedTime')}</p>
-                      <p className="text-lg font-bold">~{track.totalLessons * 12} {t('courses.minute')}</p>
-                    </div>
                   </div>
                 </div>
 
                 <div className="p-6 flex flex-col justify-between bg-gradient-to-br from-slate-800/30 to-transparent">
                   <div className="space-y-3">
-                    <Link to={`/lessons/${track.id}-1`}>
-                      <Button className="w-full bg-[#4F46E5] hover:bg-[#4338ca] shadow-lg shadow-[#4F46E5]/20">
-                        <Target className="mr-2 h-4 w-4" />
-                        {isStarted && !isFinished ? t('courses.continueLearn') : isFinished ? t('courses.repeatCourse') : t('courses.startLearn')}
-                      </Button>
-                    </Link>
+                    <Button 
+                      className="w-full bg-[#4F46E5] hover:bg-[#4338ca] shadow-lg shadow-[#4F46E5]/20"
+                      onClick={() => {
+                        window.location.href = `/lessons/${isFinished ? track.id + "-1" : track.id + "-" + (prog.completed + 1)}`;
+                      }}
+                    >
+                      <Target className="mr-2 h-4 w-4" />
+                      {isStarted && !isFinished ? t('courses.continueLearn') : isFinished ? t('courses.repeatCourse') : t('courses.startLearn')}
+                    </Button>
                     <Link to={`/courses/${track.id}`}>
                       <Button variant="outline" className="w-full border-slate-600 hover:bg-slate-700">
                         <BookOpen className="mr-2 h-4 w-4" />
@@ -195,11 +205,11 @@ export function CourseCatalog() {
                   </div>
 
                   <div className="mt-6 pt-4 border-t border-slate-700">
-                    <p className="text-xs text-slate-500 mb-3">{t('courses.achievement')}</p>
+                    <p className="text-xs text-slate-500 mb-3">Pencapaian</p>
                     {isFinished ? (
-                      <p className="text-xs text-green-400 font-medium">{t('courses.badgeAvailable')}</p>
+                      <p className="text-xs text-green-400 font-medium">Badge tersedia! Cek halaman Pencapaian.</p>
                     ) : (
-                      <p className="text-xs text-slate-600 italic">{t('courses.completeForBadge')}</p>
+                      <p className="text-xs text-slate-600 italic">Selesaikan semua materi untuk mendapat badge.</p>
                     )}
                   </div>
                 </div>

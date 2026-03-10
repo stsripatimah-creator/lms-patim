@@ -47,7 +47,7 @@ export function DashboardPage() {
     setLoading(true)
     try {
       const { data: profileData } = await supabase
-        .from('user_profiles')
+        .from('profiles')
         .select('points, streak, last_active, display_name')
         .eq('id', user.id)
         .single()

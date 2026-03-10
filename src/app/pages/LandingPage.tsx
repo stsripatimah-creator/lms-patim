@@ -146,50 +146,54 @@ export function LandingPage() {
                 </div>
               </motion.div>
               
-              {/* Floating Cards */}
+              {/* Floating Feature Cards */}
               <motion.div 
-                animate={{ y: [0, -12, 0] }}
+                animate={{ y: [0, -10, 0] }}
                 transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                 className="absolute -top-8 -right-8 z-20 hidden lg:block"
               >
-                <Card className="w-60 shadow-xl border-2 border-orange-100 bg-white overflow-hidden">
-                  <div className="h-1 w-full bg-gradient-to-r from-orange-400 to-orange-600" />
+                <Card className="w-64 shadow-xl border-2 border-[#4F46E5]/20 bg-white overflow-hidden">
+                  <div className="h-1 w-full bg-gradient-to-r from-[#4F46E5] to-[#7C3AED]" />
                   <CardContent className="p-5">
-                    <div className="flex items-center gap-3">
-                      <div className="relative">
-                        <div className="absolute inset-0 rounded-xl bg-orange-400/20 animate-ping" style={{ animationDuration: "2s" }} />
-                        <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center relative z-10 shadow-lg shadow-orange-400/40">
-                          <span style={{
-                            fontSize: 22,
-                            display: "inline-block",
-                            transformOrigin: "bottom center",
-                            transform: `scale(${1 + Math.sin(tRef.current) * 0.1}) skewX(${Math.sin(tRef.current * 1.4) * 4}deg)`,
-                            filter: `drop-shadow(0 0 6px rgba(251,146,60,${0.5 + Math.sin(tRef.current * 0.9) * 0.5}))`,
-                          }}>🔥</span>
-                        </div>
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-[#4F46E5] to-[#7C3AED] flex items-center justify-center shadow-md">
+                        <Award className="h-5 w-5 text-white" />
                       </div>
                       <div>
-                        <p className="text-xs text-slate-500 font-medium mb-1">Daily Streak</p>
-                        <p className="text-lg font-bold text-orange-500">Tetap Aktif!</p>
-                        <p className="text-xs text-slate-400">Jangan putus hari ini ⚡</p>
+                        <p className="text-xs text-slate-500 font-medium">Badge & Sertifikat</p>
+                        <p className="text-sm font-bold text-slate-800">Bukti Nyata Keahlianmu</p>
                       </div>
+                    </div>
+                    <div className="flex gap-1.5 flex-wrap">
+                      {["🌱 Pemula", "🎯 Explorer", "⚡ Warrior", "💎 Master"].map(b => (
+                        <span key={b} className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#4F46E5]/10 text-[#4F46E5] border border-[#4F46E5]/20">{b}</span>
+                      ))}
                     </div>
                   </CardContent>
                 </Card>
               </motion.div>
 
               <motion.div 
-                animate={{ y: [0, 12, 0] }}
+                animate={{ y: [0, 10, 0] }}
                 transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
                 className="absolute -bottom-6 -left-8 z-20 hidden lg:block"
               >
-                <Card className="w-64 shadow-xl border-2 border-white bg-white">
+                <Card className="w-64 shadow-xl border-2 border-amber-100 bg-white overflow-hidden">
+                  <div className="h-1 w-full bg-gradient-to-r from-[#F59E0B] to-[#EF4444]" />
                   <CardContent className="p-5">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-sm text-slate-600 font-medium">Rekomendasi untukmu</span>
-                      <Badge className="bg-[#4F46E5] text-white border-none">LPI</Badge>
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-[#F59E0B] to-[#EF4444] flex items-center justify-center shadow-md">
+                        <Sparkles className="h-5 w-5 text-white" />
+                      </div>
+                      <div>
+                        <p className="text-xs text-slate-500 font-medium">Rekomendasi Adaptif</p>
+                        <p className="text-sm font-bold text-slate-800">Materi Sesuai LPI-mu</p>
+                      </div>
                     </div>
-                    <p className="text-xs text-slate-500 leading-relaxed">Materi lanjutan dipilihkan sesuai performa belajarmu</p>
+                    <div className="flex items-center gap-2 p-2 rounded-lg bg-amber-50 border border-amber-100">
+                      <span className="text-base">🚀</span>
+                      <p className="text-xs text-slate-600">LPI tinggi? Materi makin menantang!</p>
+                    </div>
                   </CardContent>
                 </Card>
               </motion.div>

@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { Lock, Trophy, Award, CheckCircle, Download } from "lucide-react";
+import { Lock, Trophy, Award, CheckCircle } from "lucide-react";
 import { Card, CardContent } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "../components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "../components/ui/dialog";
-import { Button } from "../components/ui/button";
 import { BADGES } from "../data/mock";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../context/AuthContext";
@@ -27,12 +26,12 @@ async function checkBadgeUnlocked(badgeId: number, userId: string, profile: any)
       return totalCompleted >= 1;
     case 2: // 7-Day Streak
       return (profile?.streak ?? 0) >= 7;
-    case 3: // HTML Beginner - completed all HTML basic (4 lessons)
-      return completed.filter((p: any) => p.track?.toLowerCase() === 'html').length >= 4;
-    case 4: // CSS Stylist - completed all CSS basic
-      return completed.filter((p: any) => p.track?.toLowerCase() === 'css').length >= 4;
-    case 5: // JS Explorer - completed all JS basic
-      return completed.filter((p: any) => p.track?.toLowerCase() === 'javascript' || p.track?.toLowerCase() === 'js').length >= 4;
+    case 3: // HTML Beginner - completed all 12 HTML lessons
+      return completed.filter((p: any) => p.track?.toLowerCase() === 'html').length >= 12;
+    case 4: // CSS Stylist - completed all 12 CSS lessons
+      return completed.filter((p: any) => p.track?.toLowerCase() === 'css').length >= 12;
+    case 5: // JS Explorer - completed all 12 JS lessons
+      return completed.filter((p: any) => p.track?.toLowerCase() === 'javascript' || p.track?.toLowerCase() === 'js').length >= 12;
     case 6: // Code Master - all tracks 100%
       const htmlDone = completed.filter((p: any) => p.track?.toLowerCase() === 'html').length;
       const cssDone = completed.filter((p: any) => p.track?.toLowerCase() === 'css').length;
@@ -41,101 +40,6 @@ async function checkBadgeUnlocked(badgeId: number, userId: string, profile: any)
     default:
       return false;
   }
-}
-
-// Map badge → certificate config
-const BADGE_CERT_CONFIG: Record<number, { course: string; color: string; accent: string; emoji: string }> = {
-  1: { course: "First Lesson", color: "#0f0c29, #1a1a4e", accent: "#6366f1", emoji: "🎯" },
-  2: { course: "7-Day Streak", color: "#0d1117, #1a2744", accent: "#f97316", emoji: "🔥" },
-  3: { course: "HTML Fundamentals", color: "#1a0f0f, #2d1515", accent: "#f97316", emoji: "🏅" },
-  4: { course: "CSS Styling", color: "#0f1a2d, #0f1f3d", accent: "#3b82f6", emoji: "🎨" },
-  5: { course: "JavaScript Logic", color: "#1a1a0f, #2d2d0f", accent: "#eab308", emoji: "⚡" },
-  6: { course: "All Tracks", color: "#0f0c29, #1a0f3d", accent: "#a855f7", emoji: "👑" },
-};
-
-function downloadCertificate(badge: BadgeWithStatus, recipientName: string) {
-  const cfg = BADGE_CERT_CONFIG[badge.id] ?? BADGE_CERT_CONFIG[1];
-  const dateStr = new Date().toLocaleDateString("id-ID", { year: "numeric", month: "long", day: "numeric" });
-  const certId = `SBW-${badge.name.replace(/\s/g,'').toUpperCase()}-${Date.now().toString(36).toUpperCase()}`;
-
-  const html = `<!DOCTYPE html>
-<html lang="id">
-<head>
-  <meta charset="UTF-8"/>
-  <title>Sertifikat ${badge.name}</title>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&display=swap');
-    * { margin:0; padding:0; box-sizing:border-box; }
-    body { font-family:'Inter',sans-serif; background:#fff; display:flex; align-items:center; justify-content:center; min-height:100vh; padding:40px; }
-    .cert {
-      width:794px; min-height:562px;
-      background: linear-gradient(135deg, ${cfg.color});
-      border-radius:20px; padding:56px 70px; text-align:center;
-      position:relative; overflow:hidden; color:white;
-      box-shadow:0 25px 60px rgba(0,0,0,0.5);
-    }
-    .cert::before {
-      content:''; position:absolute; inset:0;
-      background: radial-gradient(ellipse at 20% 50%, ${cfg.accent}33 0%, transparent 60%),
-                  radial-gradient(ellipse at 80% 50%, ${cfg.accent}22 0%, transparent 60%);
-    }
-    .border-deco { position:absolute; inset:16px; border:1.5px solid rgba(255,255,255,0.12); border-radius:12px; pointer-events:none; }
-    .corner { position:absolute; width:36px; height:36px; border-color:${cfg.accent}; border-style:solid; }
-    .tl { top:24px; left:24px; border-width:3px 0 0 3px; border-radius:4px 0 0 0; }
-    .tr { top:24px; right:24px; border-width:3px 3px 0 0; border-radius:0 4px 0 0; }
-    .bl { bottom:24px; left:24px; border-width:0 0 3px 3px; border-radius:0 0 0 4px; }
-    .br { bottom:24px; right:24px; border-width:0 3px 3px 0; border-radius:0 0 4px 0; }
-    .content { position:relative; z-index:1; }
-    .logo { font-size:12px; letter-spacing:6px; color:${cfg.accent}cc; font-weight:500; text-transform:uppercase; margin-bottom:4px; }
-    .badge-emoji { font-size:48px; margin:12px 0; display:block; }
-    .title { font-family:'Playfair Display',Georgia,serif; font-size:30px; font-weight:700; color:#fff; margin-bottom:24px; }
-    .presented { font-size:12px; color:#94a3b8; letter-spacing:3px; text-transform:uppercase; margin-bottom:8px; }
-    .name { font-family:'Playfair Display',Georgia,serif; font-size:40px; font-weight:700; color:#fff; margin-bottom:8px; }
-    .divider { width:180px; height:2px; background:linear-gradient(90deg,transparent,${cfg.accent},transparent); margin:0 auto 16px; }
-    .badge-label { font-size:11px; color:#94a3b8; letter-spacing:2px; text-transform:uppercase; margin-bottom:6px; }
-    .badge-name { font-size:22px; font-weight:700; color:${cfg.accent}; margin-bottom:6px; }
-    .course { font-size:15px; color:#cbd5e1; margin-bottom:28px; }
-    .seal { width:56px; height:56px; background:linear-gradient(135deg,${cfg.accent},${cfg.accent}99); border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 24px; font-size:24px; box-shadow:0 0 20px ${cfg.accent}55; }
-    .footer { display:flex; justify-content:space-between; padding-top:16px; border-top:1px solid rgba(255,255,255,0.1); }
-    .footer-item { text-align:center; }
-    .footer-label { font-size:9px; color:#64748b; letter-spacing:2px; text-transform:uppercase; margin-bottom:3px; }
-    .footer-value { font-size:12px; color:#cbd5e1; font-weight:500; }
-  </style>
-</head>
-<body>
-<div class="cert">
-  <div class="border-deco"></div>
-  <div class="corner tl"></div><div class="corner tr"></div>
-  <div class="corner bl"></div><div class="corner br"></div>
-  <div class="content">
-    <div class="logo">✦ StepByWeb ✦</div>
-    <span class="badge-emoji">${cfg.emoji}</span>
-    <div class="title">Badge Achievement</div>
-    <div class="presented">Dengan bangga diberikan kepada</div>
-    <div class="name">${recipientName}</div>
-    <div class="divider"></div>
-    <div class="badge-label">Telah membuka badge</div>
-    <div class="badge-name">${badge.name}</div>
-    <div class="course">${badge.description}</div>
-    <div class="seal">${cfg.emoji}</div>
-    <div class="footer">
-      <div class="footer-item"><div class="footer-label">Tanggal</div><div class="footer-value">${dateStr}</div></div>
-      <div class="footer-item"><div class="footer-label">Platform</div><div class="footer-value">StepByWeb</div></div>
-      <div class="footer-item"><div class="footer-label">ID</div><div class="footer-value">${certId}</div></div>
-    </div>
-  </div>
-</div>
-</body></html>`;
-
-  const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `Sertifikat-${badge.name.replace(/\s+/g, '-')}-${recipientName.replace(/\s+/g, '-')}.html`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
 }
 
 interface BadgeWithStatus {
@@ -177,7 +81,6 @@ export function Achievements() {
 
   const unlockedCount = badges.filter(b => b.unlocked).length;
   const totalCount = badges.length;
-  const recipientName = (user as any)?.user_metadata?.full_name || profile?.full_name || user?.email?.split('@')[0] || "Pengguna";
 
   const getRequirement = (id: number) => {
     const key = `achievements.req${id}` as const;
@@ -282,16 +185,6 @@ export function Achievements() {
                 {selectedBadge?.unlocked ? '🎉 Badge ini sudah kamu dapatkan!' : t('achievements.continueLearn')}
               </p>
             </div>
-
-            {selectedBadge?.unlocked && (
-              <Button
-                className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white gap-2"
-                onClick={() => downloadCertificate(selectedBadge, recipientName)}
-              >
-                <Download className="h-4 w-4" />
-                Download Sertifikat Badge
-              </Button>
-            )}
           </div>
         </DialogContent>
       </Dialog>

@@ -13,22 +13,27 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/ta
 import { Progress } from "../../components/ui/progress";
 import { cn } from "../../lib/utils";
 import { toast } from "sonner";
-import { HTML_LESSONS, CSS_LESSONS, JS_LESSONS, LESSON_NAV_DATA as NAV_DATA } from "../../data/lessons";
+import { HTML_LESSONS, CSS_LESSONS, JS_LESSONS } from "../../data/lessons";
 import { useAuth } from "../../../context/AuthContext";
 import { supabase } from "../../../lib/supabase";
-import { HTML_ADDITIONAL_LESSONS } from "../../data/html-additional-lessons";
-import { CSS_ADDITIONAL_LESSONS } from "../../data/css-additional-lessons";
-import { CSS_MORE_LESSONS, JS_ADDITIONAL_LESSONS } from "../../data/more-lessons";
 
 // Use imported lessons - combine HTML, CSS, and JavaScript
 const LESSON_DATA: Record<string, any> = {
   ...HTML_LESSONS,
-  ...HTML_ADDITIONAL_LESSONS,
   ...CSS_LESSONS,
-  ...CSS_ADDITIONAL_LESSONS,
-  ...CSS_MORE_LESSONS,
   ...JS_LESSONS,
-  ...JS_ADDITIONAL_LESSONS
+};
+
+// Build NAV_DATA from lesson data
+const buildNav = (lessons: Record<string, any>) =>
+  Object.values(lessons)
+    .sort((a: any, b: any) => a.id.localeCompare(b.id, undefined, { numeric: true }))
+    .map((l: any) => ({ id: l.id, title: l.title }));
+
+const NAV_DATA = {
+  html: buildNav(HTML_LESSONS),
+  css: buildNav(CSS_LESSONS),
+  javascript: buildNav(JS_LESSONS),
 };
 
 export function LessonPlayer() {
@@ -71,7 +76,7 @@ export function LessonPlayer() {
   // Cek apakah semua quiz sudah disubmit
   const totalQuiz = lesson.quiz?.length || 0;
   const allQuizSubmitted = totalQuiz === 0 || 
-    lesson.quiz.every((q: any) => submittedQuiz[q.id] === true);
+    lesson.quiz.every((_: any, i: number) => submittedQuiz[i] === true);
 
   // Reset state saat lesson berganti
   useEffect(() => {
@@ -90,6 +95,7 @@ export function LessonPlayer() {
   const [loadingProgress, setLoadingProgress] = useState(true);
   const { user } = useAuth();
 
+  // Normalize track id: 'JavaScript' -> 'js', 'HTML' -> 'html', 'CSS' -> 'css'
   const trackId = lesson.track.toLowerCase();
 
   // Fetch completed lessons from Supabase on load
@@ -172,18 +178,21 @@ export function LessonPlayer() {
 
   // Mark lesson as completed
   // Hitung skor quiz dari jawaban yang sudah disubmit
-  const hitungSkorQuiz = (): number => {
+  const hitungSkorQuiz = (
+    answers: Record<number, number> = quizAnswers,
+    submitted: Record<number, boolean> = submittedQuiz
+  ): number => {
     const totalQuiz = lesson.quiz?.length || 0;
     if (totalQuiz === 0) return 100;
-    const benar = lesson.quiz.filter((q: any) => 
-      submittedQuiz[q.id] && quizAnswers[q.id] === q.correct
+    const benar = lesson.quiz.filter((q: any, i: number) => 
+      submitted[i] && answers[i] === (q.answer ?? q.correct)
     ).length;
     return Math.round((benar / totalQuiz) * 100);
   };
 
   const handleMarkComplete = async () => {
     setIsCompleted(true);
-    const skorQuiz = hitungSkorQuiz();
+    const skorQuiz = hitungSkorQuiz(quizAnswers, submittedQuiz);
 
     if (!user) {
       toast.success("Pelajaran selesai! (Login untuk menyimpan progress)");
@@ -199,7 +208,7 @@ export function LessonPlayer() {
             completed: true,
             completed_at: new Date().toISOString(),
             score: skorQuiz
-          }, { onConflict: 'user_id, lesson_id' });
+          }, { onConflict: 'user_id,lesson_id' });
 
         if (upsertError) {
           console.error('Error upserting user_progress:', upsertError);
@@ -270,14 +279,26 @@ export function LessonPlayer() {
       }
     }
 
-    // Tampilkan sertifikat kalau lesson terakhir
+    // Tampilkan sertifikat kalau lesson terakhir DAN semua lesson di track sudah selesai
     const isLastLesson = !nextLesson;
-    if (isLastLesson) {
-      setTimeout(() => setShowCertificate(true), 800);
-    } else {
+    if (!isLastLesson) {
       setTimeout(() => {
         navigate(`/lessons/${nextLesson!.id}`);
       }, 1500);
+    } else if (user) {
+      const { data: trackProgress } = await supabase
+        .from("user_progress")
+        .select("lesson_id")
+        .eq("user_id", user.id)
+        .eq("track", lesson.track.toLowerCase())
+        .eq("completed", true);
+
+      const completedCount = trackProgress?.length ?? 0;
+      const totalInTrack = rawNav.length;
+
+      if (completedCount >= totalInTrack) {
+        setTimeout(() => setShowCertificate(true), 800);
+      }
     }
   };
 
@@ -540,9 +561,10 @@ export function LessonPlayer() {
                 <h3 className="font-bold text-xl mb-4">🎯 Kuis Pemahaman</h3>
                 <div className="space-y-4">
                   {lesson.quiz.map((question: any, qIndex: number) => {
-                    const selectedAnswer = quizAnswers[question.id];
-                    const isSubmitted = submittedQuiz[question.id];
-                    const isCorrect = selectedAnswer === question.correct;
+                    const selectedAnswer = quizAnswers[qIndex];
+                    const isSubmitted = submittedQuiz[qIndex];
+                    const correctAnswer = question.answer ?? question.correct;
+                    const isCorrect = selectedAnswer === correctAnswer;
 
                     return (
                       <Card key={question.id} className={cn(
@@ -558,13 +580,13 @@ export function LessonPlayer() {
                             {question.options.map((option: string, optIndex: number) => (
                               <button
                                 key={optIndex}
-                                onClick={() => !isSubmitted && handleQuizAnswer(question.id, optIndex)}
+                                onClick={() => !isSubmitted && handleQuizAnswer(qIndex, optIndex)}
                                 disabled={isSubmitted}
                                 className={cn(
                                   "w-full text-left p-3 rounded-lg border-2 transition-all",
                                   selectedAnswer === optIndex && !isSubmitted && "border-[#4F46E5] bg-[#4F46E5]/10",
-                                  isSubmitted && optIndex === question.correct && "border-green-500 bg-green-500/10",
-                                  isSubmitted && selectedAnswer === optIndex && optIndex !== question.correct && "border-red-500 bg-red-500/10",
+                                  isSubmitted && optIndex === correctAnswer && "border-green-500 bg-green-500/10",
+                                  isSubmitted && selectedAnswer === optIndex && optIndex !== correctAnswer && "border-red-500 bg-red-500/10",
                                   !isSubmitted && selectedAnswer !== optIndex && (isDarkMode ? "border-slate-700 hover:border-slate-600" : "border-slate-200 hover:border-slate-300")
                                 )}
                               >
@@ -575,7 +597,7 @@ export function LessonPlayer() {
 
                           {!isSubmitted ? (
                             <Button
-                              onClick={() => handleQuizSubmit(question.id)}
+                              onClick={() => handleQuizSubmit(qIndex)}
                               disabled={selectedAnswer === undefined}
                               size="sm"
                               className="bg-[#4F46E5] hover:bg-[#4338ca]"

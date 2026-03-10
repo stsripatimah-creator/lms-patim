@@ -21,32 +21,78 @@ interface TrackProgress {
 export function Dashboard() {
   const { profile, user } = useAuth();
   const { t } = useTranslation();
-  const [challengeStatus] = useState<'pending' | 'completed'>('pending');
-  const [timeRemaining] = useState({ hours: 6, minutes: 12, seconds: 45 });
+  const [challengeStatus, setChallengeStatus] = useState<'pending' | 'completed'>('pending');
   const [trackProgress, setTrackProgress] = useState<Record<string, TrackProgress>>({});
+  const [avgScores, setAvgScores] = useState<Record<string, number>>({});
+  const [timeRemaining, setTimeRemaining] = useState({ hours: 0, minutes: 0, seconds: 0 });
+
+  // Real countdown to midnight
+  useEffect(() => {
+    const tick = () => {
+      const now = new Date();
+      const midnight = new Date();
+      midnight.setHours(24, 0, 0, 0);
+      const diff = midnight.getTime() - now.getTime();
+      setTimeRemaining({
+        hours: Math.floor(diff / 3600000),
+        minutes: Math.floor((diff % 3600000) / 60000),
+        seconds: Math.floor((diff % 60000) / 1000),
+      });
+    };
+    tick();
+    const interval = setInterval(tick, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   const displayName = profile?.full_name || user?.email?.split('@')[0] || "Pengguna";
   const streak = profile?.streak ?? 0;
   const points = profile?.points ?? 0;
   const days = ['M', 'S', 'S', 'R', 'K', 'J', 'S'];
 
+  // Cek status challenge dari profiles (last_active & xp_today)
+  useEffect(() => {
+    if (!user?.id) return;
+    async function checkChallenge() {
+      const { data } = await supabase
+        .from('profiles')
+        .select('last_active, xp_today')
+        .eq('id', user!.id)
+        .single();
+
+      if (data?.last_active) {
+        const today = new Date().toDateString();
+        const lastActive = new Date(data.last_active).toDateString();
+        if (lastActive === today && (data.xp_today ?? 0) > 0) {
+          setChallengeStatus('completed');
+        }
+      }
+    }
+    checkChallenge();
+  }, [user?.id]);
+
   useEffect(() => {
     if (!user?.id) return;
     async function fetchProgress() {
       const { data } = await supabase
         .from('user_progress')
-        .select('track, lesson_id, completed')
+        .select('track, lesson_id, completed, score')
         .eq('user_id', user!.id)
         .eq('completed', true);
 
       if (!data) return;
 
       const byTrack: Record<string, Set<string>> = {};
+      const scoresByTrack: Record<string, number[]> = {};
       data.forEach((row: any) => {
-        const tr = row.track?.toLowerCase();
+        let tr = row.track?.toLowerCase();
         if (!tr) return;
+        if (tr === 'javascript') tr = 'js';
         if (!byTrack[tr]) byTrack[tr] = new Set();
         byTrack[tr].add(row.lesson_id);
+        if (row.score != null) {
+          if (!scoresByTrack[tr]) scoresByTrack[tr] = [];
+          scoresByTrack[tr].push(row.score);
+        }
       });
 
       const result: Record<string, TrackProgress> = {};
@@ -56,6 +102,12 @@ export function Dashboard() {
         result[track.id] = { completed, total, percent: Math.round((completed / total) * 100) };
       });
       setTrackProgress(result);
+
+      const avgs: Record<string, number> = {};
+      Object.entries(scoresByTrack).forEach(([tr, scores]) => {
+        avgs[tr] = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
+      });
+      setAvgScores(avgs);
     }
     fetchProgress();
   }, [user?.id]);
@@ -124,13 +176,9 @@ export function Dashboard() {
                             <p className="font-bold text-white">{tp.completed}/{tp.total}</p>
                           </div>
                           <div>
-                            <p className="text-slate-500 text-xs">{t('dashboard.exercises')}</p>
-                            <p className="font-bold text-white">0</p>
-                          </div>
-                          <div>
                             <p className="text-slate-500 text-xs">{t('dashboard.avgScore')}</p>
-                            <p className={`font-bold ${tp.percent === 100 ? 'text-green-400' : tp.percent > 0 ? 'text-indigo-400' : 'text-slate-500'}`}>
-                              {tp.percent > 0 ? `${tp.percent}%` : '-'}
+                            <p className={`font-bold ${avgScores[track.id] != null ? (avgScores[track.id] >= 70 ? 'text-green-400' : 'text-yellow-400') : 'text-slate-500'}`}>
+                              {avgScores[track.id] != null ? `${avgScores[track.id]}%` : '-'}
                             </p>
                           </div>
                         </div>

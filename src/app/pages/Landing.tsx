@@ -65,43 +65,58 @@ export function LandingPage() {
             </div>
           </motion.div>
 
-          {/* Abstract Visual / Stats */}
+          {/* Feature Highlights */}
           <motion.div 
              initial={{ opacity: 0, y: 40 }}
              animate={{ opacity: 1, y: 0 }}
              transition={{ duration: 0.7, delay: 0.2 }}
-             className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto"
+             className="mt-16 grid grid-cols-1 md:grid-cols-4 gap-5 max-w-5xl mx-auto"
           >
-            <Card className="bg-[#111827]/80 backdrop-blur border-slate-800">
+            <Card className="bg-[#111827]/80 backdrop-blur border-slate-800 hover:border-orange-500/40 transition-colors">
                 <CardContent className="p-6 flex items-center gap-4">
-                    <div className="h-12 w-12 rounded-lg bg-orange-500/20 flex items-center justify-center text-orange-500">
+                    <div className="h-12 w-12 rounded-lg bg-orange-500/20 flex items-center justify-center text-orange-400 shrink-0">
                         <Zap className="h-6 w-6" />
                     </div>
                     <div className="text-left">
-                        <p className="text-sm text-slate-400">Daily Streak</p>
-                        <p className="text-2xl font-bold">7 Hari</p>
+                        <p className="text-xs text-slate-400 mb-1">Fitur Unggulan</p>
+                        <p className="text-base font-bold leading-tight">Daily Streak</p>
+                        <p className="text-xs text-slate-500 mt-0.5">Konsisten = bonus poin</p>
                     </div>
                 </CardContent>
             </Card>
-            <Card className="bg-[#111827]/80 backdrop-blur border-slate-800">
+            <Card className="bg-[#111827]/80 backdrop-blur border-slate-800 hover:border-[#4F46E5]/40 transition-colors">
                 <CardContent className="p-6 flex items-center gap-4">
-                    <div className="h-12 w-12 rounded-lg bg-blue-500/20 flex items-center justify-center text-blue-500">
-                        <Layout className="h-6 w-6" />
-                    </div>
-                    <div className="text-left">
-                        <p className="text-sm text-slate-400">Progress</p>
-                        <p className="text-2xl font-bold">45%</p>
-                    </div>
-                </CardContent>
-            </Card>
-            <Card className="bg-[#111827]/80 backdrop-blur border-slate-800">
-                <CardContent className="p-6 flex items-center gap-4">
-                    <div className="h-12 w-12 rounded-lg bg-green-500/20 flex items-center justify-center text-green-500">
+                    <div className="h-12 w-12 rounded-lg bg-[#4F46E5]/20 flex items-center justify-center text-[#4F46E5] shrink-0">
                         <Trophy className="h-6 w-6" />
                     </div>
                     <div className="text-left">
-                        <p className="text-sm text-slate-400">Badge</p>
-                        <p className="text-2xl font-bold">Explorer</p>
+                        <p className="text-xs text-slate-400 mb-1">Fitur Unggulan</p>
+                        <p className="text-base font-bold leading-tight">Badge & Sertifikat</p>
+                        <p className="text-xs text-slate-500 mt-0.5">Bukti nyata keahlianmu</p>
+                    </div>
+                </CardContent>
+            </Card>
+            <Card className="bg-[#111827]/80 backdrop-blur border-slate-800 hover:border-green-500/40 transition-colors">
+                <CardContent className="p-6 flex items-center gap-4">
+                    <div className="h-12 w-12 rounded-lg bg-green-500/20 flex items-center justify-center text-green-400 shrink-0">
+                        <CheckCircle className="h-6 w-6" />
+                    </div>
+                    <div className="text-left">
+                        <p className="text-xs text-slate-400 mb-1">Fitur Unggulan</p>
+                        <p className="text-base font-bold leading-tight">LPI Score</p>
+                        <p className="text-xs text-slate-500 mt-0.5">Ukur performa belajarmu</p>
+                    </div>
+                </CardContent>
+            </Card>
+            <Card className="bg-[#111827]/80 backdrop-blur border-slate-800 hover:border-yellow-500/40 transition-colors">
+                <CardContent className="p-6 flex items-center gap-4">
+                    <div className="h-12 w-12 rounded-lg bg-yellow-500/20 flex items-center justify-center text-yellow-400 shrink-0">
+                        <Smartphone className="h-6 w-6" />
+                    </div>
+                    <div className="text-left">
+                        <p className="text-xs text-slate-400 mb-1">Fitur Unggulan</p>
+                        <p className="text-base font-bold leading-tight">Rekomendasi Adaptif</p>
+                        <p className="text-xs text-slate-500 mt-0.5">Materi sesuai LPI-mu</p>
                     </div>
                 </CardContent>
             </Card>
