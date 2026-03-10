@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { User, Bell, Shield, Moon, Sun, LogOut } from "lucide-react";
+import React, { useState, useEffect, useRef } from "react";
+import { User, Bell, Shield, Moon, Sun, LogOut, Camera } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
@@ -9,23 +9,28 @@ import { Separator } from "../components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { toast } from "sonner";
 import { useAuth } from "../../context/AuthContext";
+import { supabase } from "../../lib/supabase";
 import { useTranslation } from "react-i18next";
 
 export function Settings() {
-  const { user, profile, signOut, updateProfile } = useAuth();
+  const { user, profile, signOut, updateProfile, refreshProfile } = useAuth();
   const { t, i18n } = useTranslation();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [fullName, setFullName] = useState(profile?.full_name || '');
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(profile?.avatar_url || null);
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
   const [dailyReminder, setDailyReminder] = useState(true);
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [language, setLanguage] = useState(localStorage.getItem('language') || 'id');
 
-  // Sync fullName saat profile berubah
+  // Sync fullName & avatar saat profile berubah
   useEffect(() => {
     if (profile?.full_name) setFullName(profile.full_name);
-  }, [profile?.full_name]);
+    if (profile?.avatar_url) setAvatarUrl(profile.avatar_url);
+  }, [profile?.full_name, profile?.avatar_url]);
 
   // Load tema dari localStorage saat pertama kali
   useEffect(() => {
@@ -36,27 +41,76 @@ export function Settings() {
     }
   }, []);
 
-  const applyTheme = (t: 'light' | 'dark') => {
-    if (t === 'light') {
-      document.documentElement.classList.remove('dark');
-      document.documentElement.classList.add('light');
+  const applyTheme = (newTheme: 'light' | 'dark') => {
+    const root = document.documentElement;
+    if (newTheme === 'light') {
+      root.classList.remove('dark');
     } else {
-      document.documentElement.classList.remove('light');
-      document.documentElement.classList.add('dark');
+      root.classList.add('dark');
     }
   };
 
-  const handleThemeChange = (t: 'light' | 'dark') => {
-    setTheme(t);
-    localStorage.setItem('theme', t);
-    applyTheme(t);
-    toast.success(`Tema ${t === 'dark' ? 'gelap' : 'terang'} diaktifkan`);
+  const handleThemeChange = (newTheme: 'light' | 'dark') => {
+    setTheme(newTheme);
+    localStorage.setItem('theme', newTheme);
+    applyTheme(newTheme);
+    toast.success(`Tema ${newTheme === 'dark' ? 'gelap' : 'terang'} diaktifkan`);
   };
 
   const handleLanguageChange = (lang: string) => {
     setLanguage(lang);
     localStorage.setItem('language', lang);
     i18n.changeLanguage(lang);
+  };
+
+  // ✅ Fix: Upload foto ke Supabase Storage
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    // Validasi ukuran & tipe file
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('Ukuran file maksimal 2MB');
+      return;
+    }
+    if (!['image/jpeg', 'image/png', 'image/gif'].includes(file.type)) {
+      toast.error('Format file harus JPG, PNG, atau GIF');
+      return;
+    }
+
+    setIsUploadingPhoto(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const filePath = `${user.id}/avatar.${fileExt}`;
+
+      // Upload ke Supabase Storage bucket "avatars"
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      // Ambil public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      // Simpan URL ke tabel profiles
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: publicUrl })
+        .eq('id', user.id);
+
+      if (updateError) throw updateError;
+
+      setAvatarUrl(publicUrl);
+      await refreshProfile();
+      toast.success('Foto profil berhasil diperbarui!');
+    } catch (err: any) {
+      toast.error('Gagal upload foto: ' + err.message);
+    } finally {
+      setIsUploadingPhoto(false);
+    }
   };
 
   const handleSaveProfile = async () => {
@@ -94,12 +148,42 @@ export function Settings() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center gap-4">
-            <div className="h-20 w-20 rounded-full border-2 border-slate-700 bg-slate-800 flex items-center justify-center text-2xl font-bold text-slate-400">
-              {profile?.full_name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || '?'}
+            {/* ✅ Fix: Avatar dengan preview & upload */}
+            <div className="relative group">
+              <div className="h-20 w-20 rounded-full border-2 border-slate-700 bg-slate-800 flex items-center justify-center text-2xl font-bold text-slate-400 overflow-hidden">
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt="Avatar" className="h-full w-full object-cover" />
+                ) : (
+                  profile?.full_name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || '?'
+                )}
+              </div>
+              {/* Overlay kamera saat hover */}
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <Camera className="h-6 w-6 text-white" />
+              </button>
             </div>
+
+            {/* Hidden file input */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/gif"
+              className="hidden"
+              onChange={handlePhotoUpload}
+            />
+
             <div>
-              <Button variant="outline" size="sm" className="border-slate-600 hover:bg-slate-700">
-                {t('settings.profile.changePhoto')}
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-slate-600 hover:bg-slate-700"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploadingPhoto}
+              >
+                {isUploadingPhoto ? 'Mengupload...' : t('settings.profile.changePhoto')}
               </Button>
               <p className="text-xs text-slate-500 mt-2">{t('settings.profile.photoHint')}</p>
             </div>
