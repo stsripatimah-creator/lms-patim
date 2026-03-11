@@ -23,22 +23,26 @@ function getSecondsUntilMidnight() {
 export function DailyChallengePage() {
   const todayKey = getTodayKey()
 
-  // Baca dari localStorage saat pertama render
-  const savedData = (() => {
+  // Lazy initializer — hanya jalan sekali saat mount, aman dari re-render
+  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(() => {
     try {
       const raw = localStorage.getItem(todayKey)
-      return raw ? JSON.parse(raw) : null
+      const saved = raw ? JSON.parse(raw) : null
+      return saved?.selectedAnswer ?? null
     } catch {
       return null
     }
-  })()
+  })
 
-  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(
-    savedData?.selectedAnswer ?? null
-  )
-  const [isSubmitted, setIsSubmitted] = useState<boolean>(
-    savedData?.isSubmitted ?? false
-  )
+  const [isSubmitted, setIsSubmitted] = useState<boolean>(() => {
+    try {
+      const raw = localStorage.getItem(todayKey)
+      const saved = raw ? JSON.parse(raw) : null
+      return saved?.isSubmitted === true
+    } catch {
+      return false
+    }
+  })
 
   // Hitung countdown sampai midnight
   const [timeLeft, setTimeLeft] = useState(() => {
