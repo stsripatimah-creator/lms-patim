@@ -305,6 +305,8 @@ export function Challenge() {
   const [showChampionModal, setShowChampionModal] = useState(false);
   const [alreadyChampion, setAlreadyChampion] = useState(false);
   const [showHint, setShowHint] = useState(false);
+  const [challengeDoneToday, setChallengeDoneToday] = useState(false);
+  const [answeredCount, setAnsweredCount] = useState(0);
 
   const streak = profile?.streak ?? 0;
   const points = profile?.points ?? 0;
@@ -322,7 +324,7 @@ export function Challenge() {
     const load = async () => {
       const { data } = await supabase
         .from('profiles')
-        .select('xp_today, last_active, daily_champion_at')
+        .select('xp_today, last_active, daily_champion_at, challenge_done_at')
         .eq('id', user.id)
         .single();
 
@@ -333,6 +335,11 @@ export function Challenge() {
 
         const championAt = data.daily_champion_at ? new Date(data.daily_champion_at).toDateString() : null;
         if (championAt === today) setAlreadyChampion(true);
+
+        // Cek apakah challenge sudah selesai hari ini
+        const challengeDoneAt = (data as any).challenge_done_at
+          ? new Date((data as any).challenge_done_at).toDateString() : null;
+        if (challengeDoneAt === today) setChallengeDoneToday(true);
       } else {
         setXpToday(0);
       }
@@ -413,12 +420,26 @@ export function Challenge() {
       localStorage.setItem(todayKey, JSON.stringify({ answeredList: newList, currentIdx }));
     } catch {}
 
+    const newAnsweredCount = answeredCount + 1;
+    setAnsweredCount(newAnsweredCount);
+
     if (isCorrect) {
       const xpGained = Math.round(XP_REWARD * (1 + xpBonus / 100));
       await updateSupabase(xpGained);
     } else {
       toast.error('Jawaban kurang tepat!');
     }
+
+    // Kalau ini soal terakhir, tandai challenge selesai di Supabase
+    if (newAnsweredCount >= QUESTIONS_PER_DAY && user) {
+      try {
+        await supabase.from('profiles').update({
+          challenge_done_at: new Date().toISOString()
+        }).eq('id', user.id);
+        setTimeout(() => setChallengeDoneToday(true), 1500);
+      } catch {}
+    }
+
     setShowHint(false);
   };
 
@@ -475,6 +496,34 @@ export function Challenge() {
             {String(hLeft).padStart(2, '0')}:{String(mLeft).padStart(2, '0')} jam
           </p>
           <p className="text-slate-500 text-xs">Reset pukul 00:00 WIB</p>
+        </div>
+        <p className="text-slate-500 text-sm">Kembali besok untuk challenge baru 🔥</p>
+      </div>
+    );
+  }
+
+  // ── Locked: challenge sudah selesai hari ini ──
+  if (challengeDoneToday) {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0);
+    const msLeft = tomorrow.getTime() - Date.now();
+    const hLeft = Math.floor(msLeft / 3600000);
+    const mLeft = Math.floor((msLeft % 3600000) / 60000);
+
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6 text-center px-4">
+        <div className="text-6xl">🏆</div>
+        <div>
+          <h2 className="text-2xl font-bold mb-1">Challenge Hari Ini Selesai!</h2>
+          <p className="text-slate-400">Kamu sudah menyelesaikan semua soal hari ini.</p>
+        </div>
+        <div className="bg-slate-800 border border-slate-700 rounded-2xl px-8 py-5 space-y-1">
+          <p className="text-slate-400 text-sm">Soal baru tersedia dalam</p>
+          <p className="text-3xl font-mono font-bold text-orange-500">
+            {String(hLeft).padStart(2, '0')}:{String(mLeft).padStart(2, '0')} jam
+          </p>
+          <p className="text-slate-500 text-xs">Reset pukul 00:00</p>
         </div>
         <p className="text-slate-500 text-sm">Kembali besok untuk challenge baru 🔥</p>
       </div>
@@ -767,5 +816,3 @@ export function Challenge() {
     </>
   );
 }
-/ /   0 3 / 1 1 / 2 0 2 6   1 1 : 2 2 : 0 5  
- 
