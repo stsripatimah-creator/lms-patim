@@ -1,25 +1,63 @@
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
-import { Timer, Zap, Trophy, HelpCircle, CheckCircle } from "lucide-react"
+import { Button } from "../../components/ui/button"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../../components/ui/card"
+import { Badge } from "../../components/ui/badge"
+import { Progress } from "../../components/ui/progress"
+import { Timer, Zap, Trophy, HelpCircle, CheckCircle, Clock } from "lucide-react"
 import { useState, useEffect } from "react"
 import { motion } from "motion/react"
 import { toast } from "sonner"
 
-export function DailyChallengePage() {
-  const [timeLeft, setTimeLeft] = useState({ hours: 6, minutes: 12, seconds: 45 })
-  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null)
-  const [isSubmitted, setIsSubmitted] = useState(false)
+// Key unik per hari — otomatis unlock besok karena tanggalnya beda
+function getTodayKey() {
+  const today = new Date().toISOString().split("T")[0] // "2026-03-11"
+  return `daily_challenge_${today}`
+}
 
-  // Mock countdown
+function getSecondsUntilMidnight() {
+  const now = new Date()
+  const midnight = new Date(now)
+  midnight.setHours(24, 0, 0, 0)
+  return Math.floor((midnight.getTime() - now.getTime()) / 1000)
+}
+
+export function DailyChallengePage() {
+  const todayKey = getTodayKey()
+
+  // Baca dari localStorage saat pertama render
+  const savedData = (() => {
+    try {
+      const raw = localStorage.getItem(todayKey)
+      return raw ? JSON.parse(raw) : null
+    } catch {
+      return null
+    }
+  })()
+
+  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(
+    savedData?.selectedAnswer ?? null
+  )
+  const [isSubmitted, setIsSubmitted] = useState<boolean>(
+    savedData?.isSubmitted ?? false
+  )
+
+  // Hitung countdown sampai midnight
+  const [timeLeft, setTimeLeft] = useState(() => {
+    const total = getSecondsUntilMidnight()
+    return {
+      hours: Math.floor(total / 3600),
+      minutes: Math.floor((total % 3600) / 60),
+      seconds: total % 60,
+    }
+  })
+
+  // Countdown real berdasarkan waktu sekarang
   useEffect(() => {
     const timer = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev.seconds > 0) return { ...prev, seconds: prev.seconds - 1 }
-        if (prev.minutes > 0) return { ...prev, minutes: prev.minutes - 1, seconds: 59 }
-        if (prev.hours > 0) return { ...prev, hours: prev.hours - 1, minutes: 59, seconds: 59 }
-        return prev
+      const total = getSecondsUntilMidnight()
+      setTimeLeft({
+        hours: Math.floor(total / 3600),
+        minutes: Math.floor((total % 3600) / 60),
+        seconds: total % 60,
       })
     }, 1000)
     return () => clearInterval(timer)
@@ -28,6 +66,13 @@ export function DailyChallengePage() {
   const handleSubmit = () => {
     if (selectedAnswer === null) return
     setIsSubmitted(true)
+
+    // Simpan ke localStorage supaya persist setelah refresh / navigasi
+    localStorage.setItem(
+      todayKey,
+      JSON.stringify({ isSubmitted: true, selectedAnswer })
+    )
+
     if (selectedAnswer === 1) {
       toast.success("Jawaban benar! Streak bertambah +1 🔥")
     } else {
@@ -95,7 +140,7 @@ export function DailyChallengePage() {
                     "Menempati kolom kedua saja",
                     "Akan error karena syntax salah"
                   ].map((ans, i) => (
-                    <div 
+                    <div
                       key={i}
                       className={`flex items-center space-x-3 p-4 rounded-lg border cursor-pointer transition-colors ${
                         selectedAnswer === i ? "border-primary bg-primary/5 ring-1 ring-primary" : "hover:bg-muted/50"
@@ -113,15 +158,32 @@ export function DailyChallengePage() {
                   ))}
                 </div>
               </div>
+
+              {/* Banner "Kembali Besok" setelah submit */}
+              {isSubmitted && (
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex items-center gap-3 p-4 rounded-lg bg-slate-100 border border-slate-200 text-slate-600"
+                >
+                  <Clock className="h-5 w-5 shrink-0 text-slate-400" />
+                  <div className="text-sm">
+                    <span className="font-semibold">Sudah selesai hari ini!</span> Challenge berikutnya tersedia dalam{" "}
+                    <span className="font-mono font-bold text-slate-800">
+                      {String(timeLeft.hours).padStart(2, '0')}:{String(timeLeft.minutes).padStart(2, '0')}:{String(timeLeft.seconds).padStart(2, '0')}
+                    </span>
+                  </div>
+                </motion.div>
+              )}
             </CardContent>
             <CardFooter>
-              <Button 
-                className="w-full" 
-                size="lg" 
+              <Button
+                className="w-full"
+                size="lg"
                 disabled={selectedAnswer === null || isSubmitted}
                 onClick={handleSubmit}
               >
-                {isSubmitted ? "Challenge Selesai" : "Submit Jawaban"}
+                {isSubmitted ? "Challenge Selesai ✓" : "Submit Jawaban"}
               </Button>
             </CardFooter>
           </Card>
