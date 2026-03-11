@@ -449,6 +449,38 @@ export function Challenge() {
     Git: "bg-green-500/20 text-green-400 border-green-500/50",
   };
 
+  // ── LOCKED STATE: semua soal sudah dijawab hari ini ──
+  if (allDone) {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0);
+    const msLeft = tomorrow.getTime() - Date.now();
+    const hLeft = Math.floor(msLeft / 3600000);
+    const mLeft = Math.floor((msLeft % 3600000) / 60000);
+    const emoji = correctCount === QUESTIONS_PER_DAY ? '🏆' : correctCount >= 3 ? '🎉' : '💪';
+
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6 text-center px-4">
+        <div className="text-6xl">{emoji}</div>
+        <div>
+          <h2 className="text-2xl font-bold mb-1">Challenge Hari Ini Selesai!</h2>
+          <p className="text-slate-400">
+            Kamu menjawab <span className="text-white font-bold">{correctCount} dari {QUESTIONS_PER_DAY}</span> soal dengan benar
+            {correctCount > 0 && <span> · <span className="text-orange-500 font-bold">+{correctCount * XP_REWARD} XP</span></span>}
+          </p>
+        </div>
+        <div className="bg-slate-800 border border-slate-700 rounded-2xl px-8 py-5 space-y-1">
+          <p className="text-slate-400 text-sm">Soal baru tersedia dalam</p>
+          <p className="text-3xl font-mono font-bold text-orange-500">
+            {String(hLeft).padStart(2, '0')}:{String(mLeft).padStart(2, '0')} jam
+          </p>
+          <p className="text-slate-500 text-xs">Reset pukul 00:00 WIB</p>
+        </div>
+        <p className="text-slate-500 text-sm">Kembali besok untuk challenge baru 🔥</p>
+      </div>
+    );
+  }
+
   return (
     <>
       <div className="grid lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
