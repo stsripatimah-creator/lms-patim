@@ -408,6 +408,11 @@ export function Challenge() {
     newList[currentIdx] = isCorrect;
     setAnsweredList(newList);
 
+    // Simpan progress ke localStorage supaya persist setelah refresh
+    try {
+      localStorage.setItem(todayKey, JSON.stringify({ answeredList: newList, currentIdx }));
+    } catch {}
+
     if (isCorrect) {
       const xpGained = Math.round(XP_REWARD * (1 + xpBonus / 100));
       await updateSupabase(xpGained);
@@ -419,9 +424,16 @@ export function Challenge() {
 
   const handleNext = () => {
     if (currentIdx < QUESTIONS_PER_DAY - 1) {
-      setCurrentIdx(currentIdx + 1);
+      const nextIdx = currentIdx + 1;
+      setCurrentIdx(nextIdx);
       setSelectedOption(null);
       setShowHint(false);
+      // Update currentIdx di localStorage
+      try {
+        const raw = localStorage.getItem(todayKey);
+        const saved = raw ? JSON.parse(raw) : {};
+        localStorage.setItem(todayKey, JSON.stringify({ ...saved, currentIdx: nextIdx }));
+      } catch {}
     }
   };
 
